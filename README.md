@@ -1,7 +1,7 @@
 # A-Star
 This is an implementation of A* search, a graph search algorithm. It creates random mazes and then runs different variations of A* search to solve them, calculating the efficiency of each and comparing them against each other. MazeSolverTester is used to create and track a single solved maze to make sure everything is working as intended before running DataCollector to collect large scale data spanning many different mazes and variations.
 
-For this submission we are adding a new feature, sight radius. Previously, the algorithm only knew the contents of squares which it had been adjacent to at some point. Now, it can know squares up to sightRadius away (Manhattan Distance).
+For this submission we are adding a new feature, saving and loading mazes in MazeSolverTester. No changes were made to DataCollector except ensuring that it would not break.
 
 Steps to run DataCollector
     - Download codebase
@@ -24,6 +24,9 @@ Steps to run MazeSolverTester
     - Run MazeSolverTester
     - Edit the maze. Instructions show up in the GUI.
     - View solution, try out the various controls such as step-by-step, rerun, change algorithm, etc.
+    - Save the maze using the save button
+    - Try loading the mazes (some come pre-saved). You can select multiple mazes by using either ctrl-lclick or shift-click.
+    - Try out the unified step-by-step
 
 Steps to run unit tests (if IDE does not let you automatically)
 # Compile (from project folder)
