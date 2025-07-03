@@ -21,6 +21,8 @@ public class SolveResult implements Serializable {
     public List<int[][]> solutionSteps;
     public long solutionTimeMs;
 
+    transient String fileName;
+
     // Original constructor for backward compatibility
     public SolveResult(boolean solved, int expandedCells) {
         this.solved = solved;
@@ -56,11 +58,16 @@ public class SolveResult implements Serializable {
     }
 
     public String getDisplayName() {
-        return String.format("%s (t:%c, r:%d) - %s",
+        return String.format("%s: %s (t:%c, r:%d) - %s",
+                fileName != null ? fileName : "Maze",
                 algorithmName != null ? algorithmName : "Unknown",
                 tiebreaker,
                 sightRadius,
                 solved ? "Solved" : "Unsolved");
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
     }
 
     @Override
