@@ -1,5 +1,6 @@
+// src/MazeSolver.java
 package src;
-// MazeSolver.java
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Deque;
@@ -117,35 +118,38 @@ public class MazeSolver {
      * @return Result containing success status and number of expanded cells
      */
     public SolveResult solveForward() {
+        long startTime = System.currentTimeMillis();
         initializeSolve();
-        
+
         int counter = 0;
         int currentPosition = start;
-        
+
         while (currentPosition != target) {
             counter++;
-            
+
             // Initialize search for this iteration
             initializeSearchIteration(currentPosition, target, counter);
-            
+
             // Plan path from current position to target
             State targetState = computeShortestPath(counter, target);
-            
+
             if (open.isEmpty()) {
-                return new SolveResult(false, expandedCells);
+                long endTime = System.currentTimeMillis();
+                return createEnhancedResult(false, expandedCells, "Forward A*", endTime - startTime);
             }
-            
+
             // Extract and follow the planned path
             Deque<State> plannedPath = extractPath(targetState, true);
             unknownMaze[Coordinates.get2DFrom1D(target, size)[0]][Coordinates.get2DFrom1D(target,
                     size)[1]] = TARGET_CELL; // Mark target
             State newPosition = followPathUntilBlocked(plannedPath);
-            
+
             resetPathVisualization();
             currentPosition = newPosition.getCoordinate();
         }
-        
-        return new SolveResult(true, expandedCells);
+
+        long endTime = System.currentTimeMillis();
+        return createEnhancedResult(true, expandedCells, "Forward A*", endTime - startTime);
     }
 
     /**
@@ -155,35 +159,38 @@ public class MazeSolver {
      * @return Result containing success status and number of expanded cells
      */
     public SolveResult solveBackward() {
+        long startTime = System.currentTimeMillis();
         initializeSolve();
-        
+
         int counter = 0;
         int currentPosition = start;
-        
+
         while (currentPosition != target) {
             counter++;
-            
+
             // Initialize search for this iteration (reversed: target to current)
             initializeSearchIteration(target, currentPosition, counter);
-            
+
             // Plan path from target to current position
             State pathState = computeShortestPath(counter, currentPosition);
-            
+
             if (open.isEmpty()) {
-                return new SolveResult(false, expandedCells);
+                long endTime = System.currentTimeMillis();
+                return createEnhancedResult(false, expandedCells, "Backward A*", endTime - startTime);
             }
-            
+
             // Extract and follow the planned path
             Deque<State> plannedPath = extractPath(pathState, false);
             unknownMaze[Coordinates.get2DFrom1D(target, size)[0]][Coordinates.get2DFrom1D(target,
                     size)[1]] = TARGET_CELL; // Mark target
             State newPosition = followPathUntilBlocked(plannedPath);
-            
+
             resetPathVisualization();
             currentPosition = newPosition.getCoordinate();
         }
-        
-        return new SolveResult(true, expandedCells);
+
+        long endTime = System.currentTimeMillis();
+        return createEnhancedResult(true, expandedCells, "Backward A*", endTime - startTime);
     }
 
     /**
@@ -193,38 +200,42 @@ public class MazeSolver {
      * @return Result containing success status and number of expanded cells
      */
     public SolveResult solveAdaptive() {
+        long startTime = System.currentTimeMillis();
         initializeSolve();
         h = new HashMap<>(); // Initialize learned heuristics
-        
+
         int counter = 0;
         int currentPosition = start;
-        
+
         while (currentPosition != target) {
             counter++;
-            
+
             // Initialize search for this iteration
             initializeSearchIteration(currentPosition, target, counter);
-            
+
             // Plan path using learned heuristics
             State targetState = computeShortestPath(counter, target);
-            
+
             if (open.isEmpty()) {
-                return new SolveResult(false, expandedCells);
+                long endTime = System.currentTimeMillis();
+                return createEnhancedResult(false, expandedCells, "Adaptive A*", endTime - startTime);
             }
-            
+
             // Extract and follow the planned path
             Deque<State> plannedPath = extractPath(targetState, true);
-            unknownMaze[Coordinates.get2DFrom1D(target, size)[0]][Coordinates.get2DFrom1D(target, size)[1]] = TARGET_CELL; // Mark target
+            unknownMaze[Coordinates.get2DFrom1D(target, size)[0]][Coordinates.get2DFrom1D(target,
+                    size)[1]] = TARGET_CELL; // Mark target
             State newPosition = followPathUntilBlocked(plannedPath);
-            
+
             // Learn better heuristics from this search
             updateLearnedHeuristics();
-            
+
             resetPathVisualization();
             currentPosition = newPosition.getCoordinate();
         }
-        
-        return new SolveResult(true, expandedCells);
+
+        long endTime = System.currentTimeMillis();
+        return createEnhancedResult(true, expandedCells, "Adaptive A*", endTime - startTime);
     }
 
     // === CORE SEARCH ALGORITHM ===
@@ -514,6 +525,21 @@ public class MazeSolver {
             System.arraycopy(unknownMaze[i], 0, currentState[i], 0, size);
         }
         steps.add(currentState);
+    }
+
+    /**
+     * Creates an enhanced SolveResult with all necessary data for saving and
+     * replay.
+     */
+    private SolveResult createEnhancedResult(boolean solved, int expandedCells, String algorithmName,
+            long solutionTimeMs) {
+        int[] startPos = Coordinates.get2DFrom1D(start, size);
+        int[] targetPos = Coordinates.get2DFrom1D(target, size);
+
+        return new SolveResult(solved, expandedCells, algorithmName, tiebreaker, sightRadius,
+                size, knownMaze, new int[] { startPos[0], startPos[1] },
+                new int[] { targetPos[0], targetPos[1] },
+                storeSteps ? new ArrayList<>(steps) : null, solutionTimeMs);
     }
 
     // === GETTERS ===
