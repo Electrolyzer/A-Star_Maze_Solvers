@@ -53,7 +53,7 @@ public class UnitTests {
             MazeSolver solver = new MazeSolver(maze, 'g', 1);
             SolveResult result = solver.solveForward();
 
-            assertEquals(EXPECTED_FORWARD_G[i], result.expandedCells,
+            assertEquals(EXPECTED_FORWARD_G[i], result.expandedCells(),
                     "Forward A* (g) expansion count mismatch for maze " + i);
         }
 
@@ -69,7 +69,7 @@ public class UnitTests {
             MazeSolver solver = new MazeSolver(maze, 'h', 1);
             SolveResult result = solver.solveForward();
 
-            assertEquals(EXPECTED_FORWARD_H[i], result.expandedCells,
+            assertEquals(EXPECTED_FORWARD_H[i], result.expandedCells(),
                     "Forward A* (h) expansion count mismatch for maze " + i);
         }
 
@@ -85,7 +85,7 @@ public class UnitTests {
             MazeSolver solver = new MazeSolver(maze, 'g', 1);
             SolveResult result = solver.solveBackward();
 
-            assertEquals(EXPECTED_BACKWARD_G[i], result.expandedCells,
+            assertEquals(EXPECTED_BACKWARD_G[i], result.expandedCells(),
                     "Backward A* (g) expansion count mismatch for maze " + i);
         }
 
@@ -101,7 +101,7 @@ public class UnitTests {
             MazeSolver solver = new MazeSolver(maze, 'g', 1);
             SolveResult result = solver.solveAdaptive();
 
-            assertEquals(EXPECTED_ADAPTIVE_G[i], result.expandedCells,
+            assertEquals(EXPECTED_ADAPTIVE_G[i], result.expandedCells(),
                     "Adaptive A* (g) expansion count mismatch for maze " + i);
         }
 

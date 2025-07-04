@@ -4,50 +4,41 @@ package src;
 import java.io.Serializable;
 import java.util.List;
 
-public class SolveResult implements Serializable {
+public record SolveResult(
+        boolean solved,
+        int expandedCells,
+        String algorithmName,
+        char tiebreaker,
+        int sightRadius,
+        int mazeSize,
+        int[][] originalMaze,
+        int[] startPosition,
+        int[] targetPosition,
+        List<int[][]> solutionSteps,
+        long solutionTimeMs,
+        String fileName) implements Serializable {
+
     private static final long serialVersionUID = 1L;
 
-    public boolean solved;
-    public int expandedCells;
+    // Compact constructor for validation and defensive copying
+    public SolveResult {
+        if (originalMaze != null) {
+            originalMaze = deepCopyMaze(originalMaze);
+        }
+        if (startPosition != null) {
+            startPosition = startPosition.clone();
+        }
+        if (targetPosition != null) {
+            targetPosition = targetPosition.clone();
+        }
+    }
 
-    // New fields for comprehensive result storage
-    public String algorithmName;
-    public char tiebreaker;
-    public int sightRadius;
-    public int mazeSize;
-    public int[][] originalMaze;
-    public int[] startPosition; // [row, col]
-    public int[] targetPosition; // [row, col]
-    public List<int[][]> solutionSteps;
-    public long solutionTimeMs;
-
-    transient String fileName;
-
-    // Original constructor for backward compatibility
+    // Backward compatibility constructor
     public SolveResult(boolean solved, int expandedCells) {
-        this.solved = solved;
-        this.expandedCells = expandedCells;
+        this(solved, expandedCells, null, 'g', 1, 0, null, null, null, null, 0L, null);
     }
 
-    // New comprehensive constructor
-    public SolveResult(boolean solved, int expandedCells, String algorithmName,
-            char tiebreaker, int sightRadius, int mazeSize,
-            int[][] originalMaze, int[] startPosition, int[] targetPosition,
-            List<int[][]> solutionSteps, long solutionTimeMs) {
-        this.solved = solved;
-        this.expandedCells = expandedCells;
-        this.algorithmName = algorithmName;
-        this.tiebreaker = tiebreaker;
-        this.sightRadius = sightRadius;
-        this.mazeSize = mazeSize;
-        this.originalMaze = deepCopyMaze(originalMaze);
-        this.startPosition = startPosition.clone();
-        this.targetPosition = targetPosition.clone();
-        this.solutionSteps = solutionSteps;
-        this.solutionTimeMs = solutionTimeMs;
-    }
-
-    private int[][] deepCopyMaze(int[][] maze) {
+    private static int[][] deepCopyMaze(int[][] maze) {
         if (maze == null)
             return null;
         int[][] copy = new int[maze.length][maze[0].length];
@@ -64,10 +55,6 @@ public class SolveResult implements Serializable {
                 tiebreaker,
                 sightRadius,
                 solved ? "Solved" : "Unsolved");
-    }
-
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
     }
 
     @Override

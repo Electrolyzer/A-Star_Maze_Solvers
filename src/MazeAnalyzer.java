@@ -5,6 +5,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 
@@ -36,115 +37,74 @@ public class MazeAnalyzer {
      * Processes mazes either from files or generates new ones, then analyzes
      * each with different algorithm variants and displays results.
      */
-    public void runAnalysis() {
+    public void runEnhancedAnalysis(java.util.List<DataCollectorUI.AlgorithmConfig> configs) {
         // Determine maze source and load/generate mazes
         List<int[][]> mazesToAnalyze;
         int mazeSize;
 
         if (ui.isUsingPreloadedMazes()) {
-            ui.getResultsArea().append("Loading preloaded mazes...\n");
             mazesToAnalyze = loadPreloadedMazes();
-            mazeSize = Constants.DEFAULT_MAZE_SIZE; // Fixed size for preloaded mazes
+            mazeSize = Constants.DEFAULT_MAZE_SIZE;
         } else {
             mazeSize = ui.getMazeSize();
             int mazeCount = ui.getMazeCount();
-            ui.getResultsArea().append(String.format("Generating %d new mazes of size %dx%d...\n",
-                    mazeCount, mazeSize, mazeSize));
             mazesToAnalyze = generateNewMazes(mazeSize, mazeCount);
         }
 
-        // Initialize exploration counts
-        explorationCounts = new int[algorithmNames.length][mazeSize][mazeSize];
+        ui.getProgressBar().setMaximum(mazesToAnalyze.size() * configs.size());
 
-        // Update progress bar
-        ui.getProgressBar().setMaximum(mazesToAnalyze.size() * algorithmNames.length);
-
-        // Clear result lists
-        expandedForwardG.clear();
-        expandedForwardH.clear();
-        expandedBackwardG.clear();
-        expandedAdaptiveG.clear();
-
-        ui.getProgressBar().setString("Processing mazes...");
-
-        // Run analysis in background
-        SwingWorker<Void, String> worker = new SwingWorker<>() {
+        SwingWorker<Map<String, java.util.List<SolveResult>>, String> worker = new SwingWorker<>() {
             @Override
-            protected Void doInBackground() {
-                individualResults(mazesToAnalyze, mazeSize);
-                publish("\nCalculating averages...\n");
-                averages();
-                return null;
-            }
+            protected Map<String, java.util.List<SolveResult>> doInBackground() {
+                Map<String, java.util.List<SolveResult>> results = new HashMap<>();
 
-            @Override
-            protected void process(List<String> chunks) {
-                for (String chunk : chunks) {
-                    ui.getResultsArea().append(chunk);
+                AtomicInteger progress = new AtomicInteger(0);
+
+                for (DataCollectorUI.AlgorithmConfig config : configs) {
+                    java.util.List<SolveResult> configResults = new ArrayList<>();
+
+                    for (int[][] maze : mazesToAnalyze) {
+                        MazeSolver solver = new MazeSolver(maze, config.getTiebreaker(), config.getSightRadius());
+
+                        SolveResult result = switch (config.getAlgorithmType()) {
+                            case "Forward" -> solver.solveForward();
+                            case "Backward" -> solver.solveBackward();
+                            case "Adaptive" -> solver.solveAdaptive();
+                            default -> throw new IllegalArgumentException(
+                                    "Unknown algorithm type: " + config.getAlgorithmType());
+                        };
+
+                        configResults.add(result);
+
+                        int currentProgress = progress.incrementAndGet();
+                        SwingUtilities.invokeLater(() -> {
+                            ui.getProgressBar().setValue(currentProgress);
+                            ui.getProgressBar().setString(String.format("Processing %s... (%d/%d)",
+                                    config.getName(), currentProgress, mazesToAnalyze.size() * configs.size()));
+                        });
+                    }
+
+                    results.put(config.getName(), configResults);
                 }
+
+                return results;
             }
 
             @Override
             protected void done() {
-                createHeatmaps();
-                ui.getResultsArea().append("\nAnalysis complete! Heatmaps show exploration frequency.\n");
-                ui.getProgressBar().setString("Complete!");
-                ui.enableRunButton();
-            }
-
-            private void individualResults(List<int[][]> mazesToAnalyze, int mazeSize) {
-                processAlgorithm(mazesToAnalyze, Constants.FORWARD_G, algorithmNames[Constants.FORWARD_G],
-                        'g', expandedForwardG, MazeSolver::solveForward, mazeSize);
-                processAlgorithm(mazesToAnalyze, Constants.FORWARD_H, algorithmNames[Constants.FORWARD_H],
-                        'h', expandedForwardH, MazeSolver::solveForward, mazeSize);
-                processAlgorithm(mazesToAnalyze, Constants.BACKWARD_G, algorithmNames[Constants.BACKWARD_G],
-                        'g', expandedBackwardG, MazeSolver::solveBackward, mazeSize);
-                processAlgorithm(mazesToAnalyze, Constants.ADAPTIVE_G, algorithmNames[Constants.ADAPTIVE_G],
-                        'g', expandedAdaptiveG, MazeSolver::solveAdaptive, mazeSize);
-            }
-
-            private void processAlgorithm(List<int[][]> mazesToAnalyze, int algIndex, String algName, char tiebreaker,
-                    List<Integer> expandedList, Function<MazeSolver, SolveResult> solveMethod, int mazeSize) {
-                publish("Expanded cells for " + algName + ":\n[");
-
-                AtomicInteger progress = new AtomicInteger(0);
-                AtomicInteger counter = new AtomicInteger(0);
-                int totalMazes = mazesToAnalyze.size();
-                int sightRadius = ui.getSightRadius(); // Get sight radius from UI
-
-                mazesToAnalyze.parallelStream().forEach(knownMaze -> {
-                    MazeSolver solver = new MazeSolver(knownMaze, tiebreaker, sightRadius);
-                    SolveResult result = solveMethod.apply(solver);
-                    expandedList.add(result.expandedCells);
-                    updateExplorationCounts(algIndex, solver.getUnknownMaze(), mazeSize);
-
-                    int currentPos = counter.incrementAndGet();
-                    String separator = (currentPos < totalMazes) ? ", " : "";
-
-                    publish(result.expandedCells + separator);
-
-                    int currentProgress = progress.incrementAndGet() + (algIndex * totalMazes);
-                    SwingUtilities.invokeLater(() -> ui.getProgressBar().setValue(currentProgress));
-                });
-
-                publish("]\n\n");
-            }        
-
-            private void averages() {
-                // NEW: Compute from stored lists (no solver re-runs)
-                double avgForwardG = expandedForwardG.stream().mapToInt(Integer::intValue).average().orElse(0);
-                publish("Average cells expanded for Forward A* (g): " + avgForwardG + "\n");
-
-                double avgForwardH = expandedForwardH.stream().mapToInt(Integer::intValue).average().orElse(0);
-                publish("Average cells expanded for Forward A* (h): " + avgForwardH + "\n");
-
-                double avgBackwardG = expandedBackwardG.stream().mapToInt(Integer::intValue).average().orElse(0);
-                publish("Average cells expanded for Backward A* (g): " + avgBackwardG + "\n");
-
-                double avgAdaptiveG = expandedAdaptiveG.stream().mapToInt(Integer::intValue).average().orElse(0);
-                publish("Average cells expanded for Adaptive A* (g): " + avgAdaptiveG + "\n");
+                try {
+                    Map<String, java.util.List<SolveResult>> results = get();
+                    ui.displayResults(results);
+                    ui.getProgressBar().setString("Analysis Complete!");
+                    ui.enableRunButton();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    JOptionPane.showMessageDialog(ui, "Error during analysis: " + e.getMessage());
+                    ui.enableRunButton();
+                }
             }
         };
+
         worker.execute();
     }
 
