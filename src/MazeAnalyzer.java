@@ -3,7 +3,6 @@ package src;
 // MazeAnalyzer.java
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -16,12 +15,7 @@ import javax.swing.SwingWorker;
  */
 public class MazeAnalyzer {
     private DataCollectorUI ui;
-    private List<Integer> expandedForwardG = new ArrayList<>();
-    private List<Integer> expandedForwardH = new ArrayList<>();
-    private List<Integer> expandedBackwardG = new ArrayList<>();
-    private List<Integer> expandedAdaptiveG = new ArrayList<>();
-    private int[][][] explorationCounts;
-    private String[] algorithmNames = Constants.ALGORITHM_NAMES;
+    private Map<String, int[][]> explorationCounts;
 
     /**
      * Constructs a MazeAnalyzer with the specified UI for displaying results.
@@ -45,10 +39,18 @@ public class MazeAnalyzer {
         if (ui.isUsingPreloadedMazes()) {
             mazesToAnalyze = loadPreloadedMazes();
             mazeSize = Constants.DEFAULT_MAZE_SIZE;
+            explorationCounts = new HashMap<>();
+            for (DataCollectorUI.AlgorithmConfig config : configs) {
+                explorationCounts.put(config.getName(), new int[Constants.DEFAULT_MAZE_SIZE][Constants.DEFAULT_MAZE_SIZE]);
+            }
         } else {
             mazeSize = ui.getMazeSize();
             int mazeCount = ui.getMazeCount();
             mazesToAnalyze = generateNewMazes(mazeSize, mazeCount);
+            explorationCounts = new HashMap<>();
+            for (DataCollectorUI.AlgorithmConfig config : configs) {
+                explorationCounts.put(config.getName(), new int[mazeSize][mazeSize]);
+            }
         }
 
         ui.getProgressBar().setMaximum(mazesToAnalyze.size() * configs.size());
@@ -75,6 +77,7 @@ public class MazeAnalyzer {
                         };
 
                         configResults.add(result);
+                        updateExplorationCounts(config.getName(), result.solutionSteps().getLast(), mazeSize);
 
                         int currentProgress = progress.incrementAndGet();
                         SwingUtilities.invokeLater(() -> {
@@ -129,26 +132,18 @@ public class MazeAnalyzer {
     }
 
     // Updated to handle variable maze sizes
-    private void updateExplorationCounts(int algorithmIndex, int[][] unknownMaze, int mazeSize) {
+    private void updateExplorationCounts(String algorithm, int[][] unknownMaze, int mazeSize) {
         for (int i = 0; i < mazeSize; i++) {
             for (int j = 0; j < mazeSize; j++) {
                 if (unknownMaze[i][j] == Constants.EXPLORED || unknownMaze[i][j] == Constants.START_CELL
                         || unknownMaze[i][j] == Constants.TARGET_CELL) {
-                    explorationCounts[algorithmIndex][i][j]++;
+                    explorationCounts.get(algorithm)[i][j]++;
                 }
             }
         }
     }
 
-    private void createHeatmaps() {
-        ui.getHeatmapPanel().removeAll();
-
-        for (int alg = 0; alg < 4; alg++) {
-            HeatmapPanel heatmap = new HeatmapPanel(explorationCounts[alg], algorithmNames[alg]);
-            ui.getHeatmapPanel().add(heatmap);
-        }
-
-        ui.getHeatmapPanel().revalidate();
-        ui.getHeatmapPanel().repaint();
+    public Map<String, int[][]> getExplorationCounts() {
+        return explorationCounts;
     }
 }

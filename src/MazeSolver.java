@@ -536,10 +536,12 @@ public class MazeSolver {
         int[] startPos = Coordinates.get2DFrom1D(start, size);
         int[] targetPos = Coordinates.get2DFrom1D(target, size);
 
+        // If steps are not stored, just use the current unknown maze state
+        List<int[][]> steps = storeSteps ? this.steps : List.of(new int[][][] { unknownMaze });
         return new SolveResult(solved, expandedCells, algorithmName, tiebreaker, sightRadius,
                 size, knownMaze, new int[] { startPos[0], startPos[1] },
                 new int[] { targetPos[0], targetPos[1] },
-                storeSteps ? new ArrayList<>(steps) : null, solutionTimeMs);
+                steps, solutionTimeMs);
     }
 
     // === GETTERS ===

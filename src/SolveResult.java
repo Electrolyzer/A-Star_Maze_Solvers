@@ -15,8 +15,7 @@ public record SolveResult(
         int[] startPosition,
         int[] targetPosition,
         List<int[][]> solutionSteps,
-        long solutionTimeMs,
-        String fileName) implements Serializable {
+        long solutionTimeMs) implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -35,7 +34,7 @@ public record SolveResult(
 
     // Backward compatibility constructor
     public SolveResult(boolean solved, int expandedCells) {
-        this(solved, expandedCells, null, 'g', 1, 0, null, null, null, null, 0L, null);
+        this(solved, expandedCells, null, 'g', 1, 0, null, null, null, null, 0L);
     }
 
     private static int[][] deepCopyMaze(int[][] maze) {
@@ -49,8 +48,7 @@ public record SolveResult(
     }
 
     public String getDisplayName() {
-        return String.format("%s: %s (t:%c, r:%d) - %s",
-                fileName != null ? fileName : "Maze",
+        return String.format("%s (t:%c, r:%d) - %s",
                 algorithmName != null ? algorithmName : "Unknown",
                 tiebreaker,
                 sightRadius,

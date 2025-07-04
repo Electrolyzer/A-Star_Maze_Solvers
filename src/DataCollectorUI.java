@@ -3,9 +3,7 @@ package src;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.*;
-import java.util.List;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
@@ -21,7 +19,6 @@ public class DataCollectorUI extends JFrame {
     private JButton runAnalysisButton;
 
     // Configuration panels
-    private JPanel algorithmConfigPanel;
     private JRadioButton usePreloadedMazesButton;
     private JRadioButton useGeneratedMazesButton;
     private JSpinner mazeSizeSpinner;
@@ -272,15 +269,14 @@ public class DataCollectorUI extends JFrame {
         JPanel performancePanel = new JPanel(new BorderLayout());
 
         // Create comparison table
-        String[] columnNames = { "Algorithm", "Avg Expanded Cells", "Success Rate", "Avg Time (ms)",
+        String[] columnNames = { "Configuration", "Algorithm", "Tiebreaker", "Sight Radius", "Avg Expanded Cells", "Avg Time (ms)",
                 "Min/Max Expanded" };
         DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
 
         for (Map.Entry<String, java.util.List<SolveResult>> entry : results.entrySet()) {
             java.util.List<SolveResult> resultList = entry.getValue();
-
+            if (resultList.isEmpty()) continue;
             double avgExpanded = resultList.stream().mapToInt(SolveResult::expandedCells).average().orElse(0);
-            double successRate = resultList.stream().mapToDouble(r -> r.solved() ? 1.0 : 0.0).average().orElse(0) * 100;
             double avgTime = resultList.stream().mapToLong(SolveResult::solutionTimeMs).average().orElse(0);
 
             IntSummaryStatistics expandedStats = resultList.stream()
@@ -291,8 +287,10 @@ public class DataCollectorUI extends JFrame {
 
             tableModel.addRow(new Object[] {
                     entry.getKey(),
+                    resultList.getFirst().algorithmName(),
+                    resultList.getFirst().tiebreaker(),
+                    resultList.getFirst().sightRadius(),
                     String.format("%.2f", avgExpanded),
-                    String.format("%.1f%%", successRate),
                     String.format("%.2f", avgTime),
                     minMax
             });
@@ -334,25 +332,22 @@ public class DataCollectorUI extends JFrame {
     }
 
     private void createHeatmapTab() {
-        JPanel heatmapPanel = new JPanel();
+        JPanel heatmapTab = new JPanel();
 
         // Calculate grid layout based on number of algorithms
         int numAlgorithms = results.size();
         int cols = (int) Math.ceil(Math.sqrt(numAlgorithms));
         int rows = (int) Math.ceil((double) numAlgorithms / cols);
 
-        heatmapPanel.setLayout(new GridLayout(rows, cols, 10, 10));
+        heatmapTab.setLayout(new GridLayout(rows, cols, 10, 10));
 
         // Create heatmaps for each algorithm
         for (Map.Entry<String, java.util.List<SolveResult>> entry : results.entrySet()) {
-            // This would need to be implemented in MazeAnalyzer to track exploration
-            // For now, create a placeholder
-            int[][] explorationData = new int[50][50]; // Placeholder
-            HeatmapPanel heatmap = new HeatmapPanel(explorationData, entry.getKey());
-            heatmapPanel.add(heatmap);
+            HeatmapPanel heatmap = new HeatmapPanel(analyzer.getExplorationCounts().get(entry.getKey()), entry.getKey());
+            heatmapTab.add(heatmap);
         }
 
-        JScrollPane heatmapScrollPane = new JScrollPane(heatmapPanel);
+        JScrollPane heatmapScrollPane = new JScrollPane(heatmapTab);
         resultsTabbedPane.addTab("Exploration Heatmaps", heatmapScrollPane);
     }
 
