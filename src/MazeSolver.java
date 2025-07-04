@@ -378,7 +378,7 @@ public class MazeSolver {
             }
 
             // Mark as expanded and discover neighbors
-            unknownMaze[currentCoords[0]][currentCoords[1]] = EXPANDED;
+            unknownMaze[currentCoords[0]][currentCoords[1]] = EXPLORED;
 
             // Check if next position in path is blocked
             if (!plannedPath.isEmpty()) {
@@ -391,7 +391,7 @@ public class MazeSolver {
                     if (storeSteps) {
                         captureCurrentState();
                     }
-                    unknownMaze[currentCoords[0]][currentCoords[1]] = EXPANDED;
+                    unknownMaze[currentCoords[0]][currentCoords[1]] = EXPLORED;
                     return currentState;
                 }
 

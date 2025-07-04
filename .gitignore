@@ -118,3 +118,4 @@ downloads/
 *.bz2
 *.exe
 *.save
+*.result

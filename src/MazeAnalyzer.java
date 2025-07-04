@@ -172,7 +172,7 @@ public class MazeAnalyzer {
     private void updateExplorationCounts(int algorithmIndex, int[][] unknownMaze, int mazeSize) {
         for (int i = 0; i < mazeSize; i++) {
             for (int j = 0; j < mazeSize; j++) {
-                if (unknownMaze[i][j] == Constants.EXPANDED || unknownMaze[i][j] == Constants.START_CELL
+                if (unknownMaze[i][j] == Constants.EXPLORED || unknownMaze[i][j] == Constants.START_CELL
                         || unknownMaze[i][j] == Constants.TARGET_CELL) {
                     explorationCounts[algorithmIndex][i][j]++;
                 }
