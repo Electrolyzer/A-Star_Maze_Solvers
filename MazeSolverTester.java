@@ -550,18 +550,14 @@ public class MazeSolverTester {
             if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
                 File[] files = fileChooser.getSelectedFiles();
                 List<SolveResult> loadedResults = new ArrayList<>();
+                List<String> filenames = new ArrayList<>();
 
                 for (File file : files) {
                     try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
                         SolveResult result = (SolveResult) ois.readObject();
                         String filename = file.getName();
-
-                        if (filename.endsWith(".result")) {
-                            result.setFileName(filename.substring(0, filename.length() - 7));
-                        } else {
-                            result.setFileName(filename); // fallback if extension is different
-                        }
                         loadedResults.add(result);
+                        filenames.add(filename);
                     } catch (IOException | ClassNotFoundException e) {
                         JOptionPane.showMessageDialog(this, "Error loading " + file.getName() + ": " + e.getMessage(),
                                 "Error", JOptionPane.ERROR_MESSAGE);
