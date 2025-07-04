@@ -42,7 +42,7 @@ public final class Constants {
     public static final int UNBLOCKED = 0;
     public static final int BLOCKED = 1;
     public static final int UNKNOWN = 2;
-    public static final int EXPANDED = 3;
+    public static final int EXPLORED = 3;
     public static final int ON_PATH_UNBLOCKED = 4;
     public static final int ON_PATH_UNKNOWN = 5;
     public static final int START_CELL = 6;

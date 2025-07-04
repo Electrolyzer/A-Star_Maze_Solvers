@@ -23,7 +23,7 @@ class CodebaseSwitcher:
         '.pyc', '.pyo', '.class', '.o', '.a', '.lib', '.so', '.dylib', '.dll', '.exe', '.pdb',
         '.log', '.tmp', '.temp', '.swp', '.swo', '.bak', '.backup', '.old', '.orig', '.save',
         '.zip', '.tar', '.tar.gz', '.rar', '.7z', '.bz2', '.xz', '.deb', '.rpm', '.pkg', 
-        '.dmg', '.msi', '.war', '.ear'
+        '.dmg', '.msi', '.war', '.ear', '.result'
     }
     
     GIT_USER = 'Codebase Switcher'

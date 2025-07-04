@@ -223,7 +223,7 @@ public class MazeSolverTester {
             addLegendItem(legendPanel, Color.BLACK, "Wall");
             addLegendItem(legendPanel, Color.WHITE, "Open Path");
             addLegendItem(legendPanel, Color.GRAY, "Unknown");
-            addLegendItem(legendPanel, Color.PINK, "Expanded (Visited)");
+            addLegendItem(legendPanel, Color.PINK, "Explored (Visited)");
             addLegendItem(legendPanel, Color.YELLOW, "Planned Path");
             addLegendItemWithDot(legendPanel, Color.YELLOW, "Current Location");
 
@@ -306,7 +306,7 @@ public class MazeSolverTester {
                             case UNBLOCKED -> Color.WHITE;
                             case BLOCKED -> Color.BLACK;
                             case UNKNOWN -> Color.GRAY;
-                            case EXPANDED -> Color.PINK;
+                            case EXPLORED -> Color.PINK;
                             case ON_PATH_UNBLOCKED, ON_PATH_UNKNOWN -> Color.YELLOW;
                             case START_CELL -> Color.GREEN;
                             case TARGET_CELL -> Color.RED;
@@ -780,7 +780,7 @@ public class MazeSolverTester {
                             case UNBLOCKED -> Color.WHITE;
                             case BLOCKED -> Color.BLACK;
                             case UNKNOWN -> Color.GRAY;
-                            case EXPANDED -> Color.PINK;
+                            case EXPLORED -> Color.PINK;
                             case ON_PATH_UNBLOCKED, ON_PATH_UNKNOWN -> Color.YELLOW;
                             case START_CELL -> Color.GREEN;
                             case TARGET_CELL -> Color.RED;

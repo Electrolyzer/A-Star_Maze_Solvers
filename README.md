@@ -1,7 +1,7 @@
 # A-Star
 This is an implementation of A* search, a graph search algorithm. It creates random mazes and then runs different variations of A* search to solve them, calculating the efficiency of each and comparing them against each other. MazeSolverTester is used to create and track a single solved maze to make sure everything is working as intended before running DataCollector to collect large scale data spanning many different mazes and variations.
 
-For this submission we are adding a new feature, saving and loading mazes in MazeSolverTester. No changes were made to DataCollector except ensuring that it would not break.
+In the last update, we improved SolveResult to contain a lot more data than before, allowing it to pass more data to MazeSolverTester and be saved as a file. In this submission we will utilize that extra data we have to improve the DataCollector class, getting more stats and information.
 
 Steps to run DataCollector
     - Download codebase
@@ -9,13 +9,6 @@ Steps to run DataCollector
     - Click on generate new mazes and adjust size, number and sight radius.
     - Click 'run analysis'
     - During the next few seconds the results should populate the left side text area while the progress bar fills.
-        Expected averages (for maze size 101): 
-        - Forward A* with g being the tiebreaker is: 9591.82
-        - Forward A* with h being the tiebreaker is: 258773.76
-        - Backward A* with g being the tiebreaker is: 123503.74
-        - Adaptive A* with g being the tiebreaker is: 9483.16
-        (These are run on the mazes saved in the mazes folder so we can check that the algorithms still work properly)
-        If you raise the sight radius, these numbers should be expected to go down.
     - Once the mazes are done processing the heatmaps will populate the right side panel.
 
 
