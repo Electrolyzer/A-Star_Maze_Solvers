@@ -459,7 +459,7 @@ public class MazeSolverTester {
             }
 
             currentResult = result;
-            if (!currentResult.solutionSteps.isEmpty()) {
+            if (!currentResult.solutionSteps().isEmpty()) {
                 // Switch to step view
                 CardLayout cl = (CardLayout) mazePanelContainer.getLayout();
                 cl.show(mazePanelContainer, "STEPS");
@@ -477,8 +477,8 @@ public class MazeSolverTester {
                 saveResultButton.setEnabled(true);
             }
 
-            String message = result.solved
-                    ? String.format("Maze solved! Expanded cells: %d (Sight radius: %d)", result.expandedCells,
+            String message = result.solved()
+                    ? String.format("Maze solved! Expanded cells: %d (Sight radius: %d)", result.expandedCells(),
                             sightRadius)
                     : "No path found to target.";
 
@@ -591,7 +591,7 @@ public class MazeSolverTester {
         }
 
         private void updateStepView() {
-            if (currentResult != null && !currentResult.solutionSteps.isEmpty()) {
+            if (currentResult != null && !currentResult.solutionSteps().isEmpty()) {
                 stepMazeView.setResults(List.of(currentResult));
             }
         }
@@ -679,8 +679,8 @@ public class MazeSolverTester {
 
             // Find maximum steps across all results
             maxSteps = results.stream()
-                    .filter(r -> r.solutionSteps != null)
-                    .mapToInt(r -> r.solutionSteps.size())
+                    .filter(r -> r.solutionSteps() != null)
+                    .mapToInt(r -> r.solutionSteps().size())
                     .max()
                     .orElse(1);
 
@@ -734,7 +734,7 @@ public class MazeSolverTester {
 
             public ResultPanel(SolveResult result) {
                 this.result = result;
-                this.currentMaze = result.originalMaze != null ? deepCopy(result.originalMaze) : new int[10][10];
+                this.currentMaze = result.originalMaze() != null ? deepCopy(result.originalMaze()) : new int[10][10];
 
                 setLayout(new BorderLayout());
                 setBorder(BorderFactory.createTitledBorder(result.getDisplayName()));
@@ -742,8 +742,8 @@ public class MazeSolverTester {
                 // Combine both in the border title
                 String combinedTitle = String.format("%s (Expanded: %d, Time: %dms)",
                         result.getDisplayName(),
-                        result.expandedCells,
-                        result.solutionTimeMs);
+                        result.expandedCells(),
+                        result.solutionTimeMs());
 
                 setBorder(BorderFactory.createTitledBorder(combinedTitle));
 
@@ -753,9 +753,9 @@ public class MazeSolverTester {
             }
 
             public void updateToStep(int step) {
-                if (result.solutionSteps != null && !result.solutionSteps.isEmpty()) {
-                    int actualStep = Math.min(step, result.solutionSteps.size() - 1);
-                    currentMaze = deepCopy(result.solutionSteps.get(actualStep));
+                if (result.solutionSteps() != null && !result.solutionSteps().isEmpty()) {
+                    int actualStep = Math.min(step, result.solutionSteps().size() - 1);
+                    currentMaze = deepCopy(result.solutionSteps().get(actualStep));
                 }
                 repaint();
             }
