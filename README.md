@@ -1,8 +1,6 @@
 # A-Star
 This is an implementation of A* search, a graph search algorithm. It creates random mazes and then runs different variations of A* search to solve them, calculating the efficiency of each and comparing them against each other. MazeSolverTester is used to create and track a single solved maze to make sure everything is working as intended before running DataCollector to collect large scale data spanning many different mazes and variations.
 
-In the last update, we improved SolveResult to contain a lot more data than before, allowing it to pass more data to MazeSolverTester and be saved as a file. In this submission we will utilize that extra data we have to improve the DataCollector class, getting more stats and information.
-
 Steps to run DataCollector
     - Download codebase
     - Run DataCollector
