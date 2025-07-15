@@ -1,6 +1,7 @@
 
 // DataCollector.java
 import javax.swing.*;
+import com.formdev.flatlaf.FlatLightLaf;
 
 import src.DataCollectorUI;
 
@@ -15,7 +16,9 @@ public class DataCollector {
      * @param args Command line arguments (not used)
      */
     public static void main(String[] args) {
+        FlatLightLaf.setup();
         SwingUtilities.invokeLater(() -> {
+
             DataCollectorUI ui = new DataCollectorUI();
             ui.setVisible(true);
         });
