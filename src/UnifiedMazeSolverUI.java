@@ -112,7 +112,10 @@ public class UnifiedMazeSolverUI extends JFrame implements GenericMazeAnalyzer.A
         JPanel editorPanel = createInlineConfigEditor();
         configPanel.add(editorPanel, BorderLayout.NORTH);
 
-        // Configuration list
+        // Create a panel that can switch between list view and checkbox view
+        JPanel configDisplayPanel = new JPanel(new CardLayout());
+        
+        // Configuration list for Interactive Solver
         configList = new JList<>(configListModel);
         configList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         configList.setCellRenderer(new AlgorithmConfigRenderer());
@@ -141,7 +144,26 @@ public class UnifiedMazeSolverUI extends JFrame implements GenericMazeAnalyzer.A
         
         JScrollPane configScrollPane = new JScrollPane(configList);
         configScrollPane.setPreferredSize(new Dimension(330, 150));
-        configPanel.add(configScrollPane, BorderLayout.CENTER);
+        
+        // Configuration checkboxes for Performance Analysis
+        JPanel checkboxPanel = createConfigurationCheckboxPanel();
+        JScrollPane checkboxScrollPane = new JScrollPane(checkboxPanel);
+        checkboxScrollPane.setPreferredSize(new Dimension(330, 150));
+        
+        configDisplayPanel.add(configScrollPane, "LIST");
+        configDisplayPanel.add(checkboxScrollPane, "CHECKBOXES");
+        
+        configPanel.add(configDisplayPanel, BorderLayout.CENTER);
+        
+        // Add tab change listener to switch between list and checkbox views
+        mainTabbedPane.addChangeListener(e -> {
+            CardLayout cl = (CardLayout) configDisplayPanel.getLayout();
+            if (mainTabbedPane.getSelectedIndex() == 1) { // Performance Analysis tab
+                cl.show(configDisplayPanel, "CHECKBOXES");
+            } else { // Interactive Solver tab
+                cl.show(configDisplayPanel, "LIST");
+            }
+        });
 
         // Configuration management buttons
         JPanel configButtonPanel = new JPanel(new GridLayout(1, 2, 5, 5));
@@ -473,6 +495,9 @@ public class UnifiedMazeSolverUI extends JFrame implements GenericMazeAnalyzer.A
             JOptionPane.showMessageDialog(this, "Configuration added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
         }
 
+        // Update checkboxes if they exist
+        updateCheckboxesIfNeeded();
+
         // Clear the editor fields
         configNameField.setText("");
         configAlgorithmCombo.setSelectedIndex(0);
@@ -594,15 +619,135 @@ public class UnifiedMazeSolverUI extends JFrame implements GenericMazeAnalyzer.A
         }
     }
 
+    // Create checkbox panel for performance analysis configuration selection
+    private JPanel createConfigurationCheckboxPanel() {
+        JPanel checkboxPanel = new JPanel();
+        checkboxPanel.setLayout(new BoxLayout(checkboxPanel, BoxLayout.Y_AXIS));
+        checkboxPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+        // Initialize checkbox map
+        configCheckboxes = new HashMap<>();
+
+        // Add "Select All" / "Deselect All" buttons
+        JPanel selectButtonPanel = new JPanel(new FlowLayout());
+        JButton selectAllButton = new JButton("Select All");
+        JButton deselectAllButton = new JButton("Deselect All");
+
+        selectAllButton.addActionListener(e -> {
+            for (JCheckBox checkbox : configCheckboxes.values()) {
+                checkbox.setSelected(true);
+            }
+        });
+
+        deselectAllButton.addActionListener(e -> {
+            for (JCheckBox checkbox : configCheckboxes.values()) {
+                checkbox.setSelected(false);
+            }
+        });
+
+        selectButtonPanel.add(selectAllButton);
+        selectButtonPanel.add(deselectAllButton);
+        checkboxPanel.add(selectButtonPanel);
+
+        // Add separator
+        checkboxPanel.add(Box.createVerticalStrut(5));
+
+        // Create checkboxes for each configuration
+        updateConfigurationCheckboxes(checkboxPanel);
+
+        return checkboxPanel;
+    }
+
+    private void updateConfigurationCheckboxes(JPanel checkboxPanel) {
+        // Remove existing checkboxes (except the button panel)
+        Component[] components = checkboxPanel.getComponents();
+        for (int i = components.length - 1; i >= 2; i--) { // Keep first two components (button panel and strut)
+            checkboxPanel.remove(i);
+        }
+
+        // Clear the checkbox map
+        if (configCheckboxes != null) {
+            configCheckboxes.clear();
+        } else {
+            configCheckboxes = new HashMap<>();
+        }
+
+        // Add checkboxes for each configuration
+        for (AlgorithmConfig config : algorithmConfigs) {
+            JCheckBox checkbox = new JCheckBox(config.toString());
+            checkbox.setSelected(true); // Default to selected
+            checkbox.setToolTipText(String.format("Algorithm: %s, Tiebreaker: %c, Sight Radius: %d",
+                    config.getAlgorithmType(), config.getTiebreaker(), config.getSightRadius()));
+            
+            configCheckboxes.put(config, checkbox);
+            checkboxPanel.add(checkbox);
+        }
+
+        checkboxPanel.revalidate();
+        checkboxPanel.repaint();
+    }
+
+    private void updateCheckboxesIfNeeded() {
+        // Find the checkbox panel and update it if it exists
+        if (configCheckboxes != null) {
+            // Find the checkbox panel in the UI hierarchy
+            Component[] components = getContentPane().getComponents();
+            for (Component comp : components) {
+                if (comp instanceof JPanel) {
+                    JPanel panel = (JPanel) comp;
+                    if (panel.getBorder() instanceof javax.swing.border.TitledBorder) {
+                        javax.swing.border.TitledBorder border = (javax.swing.border.TitledBorder) panel.getBorder();
+                        if ("Algorithm Configurations".equals(border.getTitle())) {
+                            // Found the config panel, now find the checkbox panel
+                            updateCheckboxPanelInHierarchy(panel);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void updateCheckboxPanelInHierarchy(Container container) {
+        for (Component comp : container.getComponents()) {
+            if (comp instanceof JScrollPane) {
+                JScrollPane scrollPane = (JScrollPane) comp;
+                Component view = scrollPane.getViewport().getView();
+                if (view instanceof JPanel) {
+                    JPanel panel = (JPanel) view;
+                    // Check if this is the checkbox panel by looking for checkboxes
+                    Component[] children = panel.getComponents();
+                    boolean hasCheckboxes = false;
+                    for (Component child : children) {
+                        if (child instanceof JCheckBox) {
+                            hasCheckboxes = true;
+                            break;
+                        }
+                    }
+                    if (hasCheckboxes) {
+                        updateConfigurationCheckboxes(panel);
+                        return;
+                    }
+                }
+            } else if (comp instanceof Container) {
+                updateCheckboxPanelInHierarchy((Container) comp);
+            }
+        }
+    }
+
     // Performance analysis methods with checkbox selection
     public void runAnalysis() {
         // Get selected configurations from checkboxes when in performance analysis tab
         java.util.List<AlgorithmConfig> selectedConfigs = new ArrayList<>();
         
         if (mainTabbedPane.getSelectedIndex() == 1) { // Performance Analysis tab
-            // Use checkbox selection logic (to be implemented)
-            for (AlgorithmConfig config : algorithmConfigs) {
-                selectedConfigs.add(config); // For now, include all - will be replaced with checkbox logic
+            // Use checkbox selection logic
+            if (configCheckboxes != null) {
+                for (Map.Entry<AlgorithmConfig, JCheckBox> entry : configCheckboxes.entrySet()) {
+                    if (entry.getValue().isSelected()) {
+                        selectedConfigs.add(entry.getKey());
+                    }
+                }
             }
         } else {
             // Use list selection for other cases
