@@ -119,3 +119,11 @@ downloads/
 *.exe
 *.save
 *.result
+
+# Build directory
+build/
+**/build/
+
+# Results directory (generated at runtime)
+Results/
+**/Results/
