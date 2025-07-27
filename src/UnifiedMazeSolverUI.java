@@ -21,6 +21,14 @@ public class UnifiedMazeSolverUI extends JFrame implements GenericMazeAnalyzer.A
     private DefaultListModel<AlgorithmConfig> configListModel;
     private JList<AlgorithmConfig> configList;
     private AlgorithmConfig currentSolverConfig;
+    private Map<AlgorithmConfig, JCheckBox> configCheckboxes;
+    
+    // Inline editor components
+    private JTextField configNameField;
+    private JComboBox<String> configAlgorithmCombo;
+    private JComboBox<Character> configTiebreakerCombo;
+    private JSpinner configSightRadiusSpinner;
+    private JButton addEditButton;
     
     // Main tabbed interface
     private JTabbedPane mainTabbedPane;
@@ -100,6 +108,10 @@ public class UnifiedMazeSolverUI extends JFrame implements GenericMazeAnalyzer.A
         configPanel.setBorder(BorderFactory.createTitledBorder("Algorithm Configurations"));
         configPanel.setPreferredSize(new Dimension(350, 0));
 
+        // Inline configuration editor
+        JPanel editorPanel = createInlineConfigEditor();
+        configPanel.add(editorPanel, BorderLayout.NORTH);
+
         // Configuration list
         configList = new JList<>(configListModel);
         configList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -114,27 +126,32 @@ public class UnifiedMazeSolverUI extends JFrame implements GenericMazeAnalyzer.A
             }
         });
         
+        // Add double-click listener to load configuration into editor
+        configList.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    AlgorithmConfig selected = configList.getSelectedValue();
+                    if (selected != null) {
+                        loadConfigIntoEditor(selected);
+                    }
+                }
+            }
+        });
+        
         JScrollPane configScrollPane = new JScrollPane(configList);
-        configScrollPane.setPreferredSize(new Dimension(330, 200));
+        configScrollPane.setPreferredSize(new Dimension(330, 150));
         configPanel.add(configScrollPane, BorderLayout.CENTER);
 
         // Configuration management buttons
-        JPanel configButtonPanel = new JPanel(new GridLayout(2, 2, 5, 5));
+        JPanel configButtonPanel = new JPanel(new GridLayout(1, 2, 5, 5));
 
-        JButton addConfigButton = new JButton("Add");
-        addConfigButton.addActionListener(this::showAddConfigDialog);
-
-        JButton editConfigButton = new JButton("Edit");
-        editConfigButton.addActionListener(this::showEditConfigDialog);
-
-        JButton removeConfigButton = new JButton("Remove");
+        JButton removeConfigButton = new JButton("Remove Selected");
         removeConfigButton.addActionListener(e -> removeSelectedConfig());
 
-        JButton saveConfigsButton = new JButton("Save All");
+        JButton saveConfigsButton = new JButton("Save All to File");
         saveConfigsButton.addActionListener(e -> saveConfigurations());
 
-        configButtonPanel.add(addConfigButton);
-        configButtonPanel.add(editConfigButton);
         configButtonPanel.add(removeConfigButton);
         configButtonPanel.add(saveConfigsButton);
 
@@ -349,6 +366,121 @@ public class UnifiedMazeSolverUI extends JFrame implements GenericMazeAnalyzer.A
         return controlPanel;
     }
 
+    // Inline configuration editor methods
+    private JPanel createInlineConfigEditor() {
+        JPanel editorPanel = new JPanel();
+        editorPanel.setBorder(BorderFactory.createTitledBorder("Configuration Editor"));
+        editorPanel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(2, 2, 2, 2);
+
+        // Name field
+        gbc.gridx = 0; gbc.gridy = 0; gbc.anchor = GridBagConstraints.WEST;
+        editorPanel.add(new JLabel("Name:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        configNameField = new JTextField(15);
+        editorPanel.add(configNameField, gbc);
+
+        // Algorithm combo
+        gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        editorPanel.add(new JLabel("Algorithm:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        configAlgorithmCombo = new JComboBox<>(new String[]{"Forward", "Backward", "Adaptive"});
+        editorPanel.add(configAlgorithmCombo, gbc);
+
+        // Tiebreaker combo
+        gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        editorPanel.add(new JLabel("Tiebreaker:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        configTiebreakerCombo = new JComboBox<>(new Character[]{'g', 'h'});
+        editorPanel.add(configTiebreakerCombo, gbc);
+
+        // Sight radius spinner
+        gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        editorPanel.add(new JLabel("Sight Radius:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+        configSightRadiusSpinner = new JSpinner(new SpinnerNumberModel(1, 1, 20, 1));
+        editorPanel.add(configSightRadiusSpinner, gbc);
+
+        // Add/Edit button
+        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
+        addEditButton = new JButton("Add Configuration");
+        addEditButton.addActionListener(e -> addConfigurationFromEditor());
+        
+        // Add listener to name field to update button text
+        configNameField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { updateButtonText(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { updateButtonText(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { updateButtonText(); }
+        });
+        
+        editorPanel.add(addEditButton, gbc);
+
+        return editorPanel;
+    }
+
+    private void loadConfigIntoEditor(AlgorithmConfig config) {
+        configNameField.setText(config.getName());
+        configAlgorithmCombo.setSelectedItem(config.getAlgorithmType());
+        configTiebreakerCombo.setSelectedItem(config.getTiebreaker());
+        configSightRadiusSpinner.setValue(config.getSightRadius());
+    }
+
+    private void updateButtonText() {
+        String name = configNameField.getText().trim();
+        boolean exists = algorithmConfigs.stream().anyMatch(config -> config.getName().equals(name));
+        addEditButton.setText(exists ? "Edit Configuration" : "Add Configuration");
+    }
+
+    private void addConfigurationFromEditor() {
+        String name = configNameField.getText().trim();
+        if (name.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter a configuration name.", "Missing Name", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        String algorithmType = (String) configAlgorithmCombo.getSelectedItem();
+        char tiebreaker = (Character) configTiebreakerCombo.getSelectedItem();
+        int sightRadius = (Integer) configSightRadiusSpinner.getValue();
+
+        // Check if configuration with this name already exists
+        AlgorithmConfig existingConfig = algorithmConfigs.stream()
+                .filter(config -> config.getName().equals(name))
+                .findFirst()
+                .orElse(null);
+
+        if (existingConfig != null) {
+            // Update existing configuration
+            existingConfig.setAlgorithmType(algorithmType);
+            existingConfig.setTiebreaker(tiebreaker);
+            existingConfig.setSightRadius(sightRadius);
+            
+            // Update the list model
+            int index = algorithmConfigs.indexOf(existingConfig);
+            configListModel.setElementAt(existingConfig, index);
+            
+            // Update current solver config if it was the one being edited
+            if (currentSolverConfig == existingConfig) {
+                updateSolverConfigDisplay();
+            }
+            
+            JOptionPane.showMessageDialog(this, "Configuration updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            // Add new configuration
+            AlgorithmConfig newConfig = new AlgorithmConfig(name, algorithmType, tiebreaker, sightRadius);
+            algorithmConfigs.add(newConfig);
+            configListModel.addElement(newConfig);
+            JOptionPane.showMessageDialog(this, "Configuration added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+        }
+
+        // Clear the editor fields
+        configNameField.setText("");
+        configAlgorithmCombo.setSelectedIndex(0);
+        configTiebreakerCombo.setSelectedIndex(0);
+        configSightRadiusSpinner.setValue(1);
+        updateButtonText();
+    }
+
     // Configuration management methods
     private void showAddConfigDialog(ActionEvent e) {
         GenericAlgorithmConfigDialog dialog = new GenericAlgorithmConfigDialog(
@@ -462,9 +594,21 @@ public class UnifiedMazeSolverUI extends JFrame implements GenericMazeAnalyzer.A
         }
     }
 
-    // Performance analysis methods (adapted from DataCollectorUI)
+    // Performance analysis methods with checkbox selection
     public void runAnalysis() {
-        java.util.List<AlgorithmConfig> selectedConfigs = configList.getSelectedValuesList();
+        // Get selected configurations from checkboxes when in performance analysis tab
+        java.util.List<AlgorithmConfig> selectedConfigs = new ArrayList<>();
+        
+        if (mainTabbedPane.getSelectedIndex() == 1) { // Performance Analysis tab
+            // Use checkbox selection logic (to be implemented)
+            for (AlgorithmConfig config : algorithmConfigs) {
+                selectedConfigs.add(config); // For now, include all - will be replaced with checkbox logic
+            }
+        } else {
+            // Use list selection for other cases
+            selectedConfigs = configList.getSelectedValuesList();
+        }
+        
         if (selectedConfigs.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Please select at least one algorithm configuration.");
             return;
@@ -1008,7 +1152,13 @@ public class UnifiedMazeSolverUI extends JFrame implements GenericMazeAnalyzer.A
 
         @Override
         public String toString() {
-            return String.format("%s (t:%c, r:%d)", name, tiebreaker, sightRadius);
+            String algorithmAbbrev = switch (algorithmType) {
+                case "Forward" -> "f";
+                case "Backward" -> "b";
+                case "Adaptive" -> "a";
+                default -> "?";
+            };
+            return String.format("%s (a:%s, t:%c, r:%d)", name, algorithmAbbrev, tiebreaker, sightRadius);
         }
     }
 
