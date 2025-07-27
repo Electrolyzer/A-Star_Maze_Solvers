@@ -126,14 +126,33 @@ public class UnifiedMazeSolverUI extends JFrame implements GenericMazeAnalyzer.A
             }
         });
         
-        // Add double-click listener to load configuration into editor (works in both modes)
+        // Add mouse listener to handle both checkbox clicks and double-click editing
         configList.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent e) {
-                if (e.getClickCount() == 2) {
-                    AlgorithmConfig selected = configList.getSelectedValue();
-                    if (selected != null) {
-                        loadConfigIntoEditor(selected);
+                int index = configList.locationToIndex(e.getPoint());
+                if (index >= 0) {
+                    AlgorithmConfig config = configListModel.getElementAt(index);
+                    
+                    if (e.getClickCount() == 1 && mainTabbedPane.getSelectedIndex() == 1) {
+                        // Single click in performance analysis mode - handle checkbox
+                        Rectangle cellBounds = configList.getCellBounds(index, index);
+                        if (cellBounds != null) {
+                            // Check if click was on the right side (checkbox area)
+                            int relativeX = e.getX() - cellBounds.x;
+                            int checkboxAreaStart = cellBounds.width - 30; // Approximate checkbox area
+                            
+                            if (relativeX > checkboxAreaStart && configCheckboxes != null) {
+                                JCheckBox checkbox = configCheckboxes.get(config);
+                                if (checkbox != null) {
+                                    checkbox.setSelected(!checkbox.isSelected());
+                                    configList.repaint();
+                                }
+                            }
+                        }
+                    } else if (e.getClickCount() == 2) {
+                        // Double click - load into editor
+                        loadConfigIntoEditor(config);
                     }
                 }
             }
