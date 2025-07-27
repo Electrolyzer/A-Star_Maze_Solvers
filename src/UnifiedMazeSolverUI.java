@@ -112,13 +112,10 @@ public class UnifiedMazeSolverUI extends JFrame implements GenericMazeAnalyzer.A
         JPanel editorPanel = createInlineConfigEditor();
         configPanel.add(editorPanel, BorderLayout.NORTH);
 
-        // Create a panel that can switch between list view and checkbox view
-        JPanel configDisplayPanel = new JPanel(new CardLayout());
-        
-        // Configuration list for Interactive Solver
+        // Configuration list that adapts based on current tab
         configList = new JList<>(configListModel);
         configList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        configList.setCellRenderer(new AlgorithmConfigRenderer());
+        configList.setCellRenderer(new AdaptiveConfigRenderer());
         configList.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 AlgorithmConfig selected = configList.getSelectedValue();
@@ -129,7 +126,7 @@ public class UnifiedMazeSolverUI extends JFrame implements GenericMazeAnalyzer.A
             }
         });
         
-        // Add double-click listener to load configuration into editor
+        // Add double-click listener to load configuration into editor (works in both modes)
         configList.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent e) {
@@ -144,25 +141,11 @@ public class UnifiedMazeSolverUI extends JFrame implements GenericMazeAnalyzer.A
         
         JScrollPane configScrollPane = new JScrollPane(configList);
         configScrollPane.setPreferredSize(new Dimension(330, 150));
+        configPanel.add(configScrollPane, BorderLayout.CENTER);
         
-        // Configuration checkboxes for Performance Analysis
-        JPanel checkboxPanel = createConfigurationCheckboxPanel();
-        JScrollPane checkboxScrollPane = new JScrollPane(checkboxPanel);
-        checkboxScrollPane.setPreferredSize(new Dimension(330, 150));
-        
-        configDisplayPanel.add(configScrollPane, "LIST");
-        configDisplayPanel.add(checkboxScrollPane, "CHECKBOXES");
-        
-        configPanel.add(configDisplayPanel, BorderLayout.CENTER);
-        
-        // Add tab change listener to switch between list and checkbox views
+        // Add tab change listener to update the renderer
         mainTabbedPane.addChangeListener(e -> {
-            CardLayout cl = (CardLayout) configDisplayPanel.getLayout();
-            if (mainTabbedPane.getSelectedIndex() == 1) { // Performance Analysis tab
-                cl.show(configDisplayPanel, "CHECKBOXES");
-            } else { // Interactive Solver tab
-                cl.show(configDisplayPanel, "LIST");
-            }
+            configList.repaint(); // Refresh to show/hide checkboxes
         });
 
         // Configuration management buttons
@@ -486,13 +469,13 @@ public class UnifiedMazeSolverUI extends JFrame implements GenericMazeAnalyzer.A
                 updateSolverConfigDisplay();
             }
             
-            JOptionPane.showMessageDialog(this, "Configuration updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            // Configuration updated silently
         } else {
             // Add new configuration
             AlgorithmConfig newConfig = new AlgorithmConfig(name, algorithmType, tiebreaker, sightRadius);
             algorithmConfigs.add(newConfig);
             configListModel.addElement(newConfig);
-            JOptionPane.showMessageDialog(this, "Configuration added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            // Configuration added silently
         }
 
         // Update checkboxes if they exist
@@ -1304,6 +1287,74 @@ public class UnifiedMazeSolverUI extends JFrame implements GenericMazeAnalyzer.A
                 default -> "?";
             };
             return String.format("%s (a:%s, t:%c, r:%d)", name, algorithmAbbrev, tiebreaker, sightRadius);
+        }
+    }
+
+    private class AdaptiveConfigRenderer extends DefaultListCellRenderer {
+        @Override
+        public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                boolean isSelected, boolean cellHasFocus) {
+            
+            if (value instanceof AlgorithmConfig) {
+                AlgorithmConfig config = (AlgorithmConfig) value;
+                
+                // Check if we're in performance analysis mode
+                boolean isPerformanceMode = mainTabbedPane.getSelectedIndex() == 1;
+                
+                if (isPerformanceMode) {
+                    // Create a panel with checkbox and text
+                    JPanel panel = new JPanel(new BorderLayout());
+                    panel.setOpaque(true);
+                    
+                    // Set background color based on selection
+                    if (isSelected) {
+                        panel.setBackground(list.getSelectionBackground());
+                    } else {
+                        panel.setBackground(list.getBackground());
+                    }
+                    
+                    // Create or get existing checkbox
+                    JCheckBox checkbox;
+                    if (configCheckboxes != null && configCheckboxes.containsKey(config)) {
+                        checkbox = configCheckboxes.get(config);
+                    } else {
+                        checkbox = new JCheckBox();
+                        checkbox.setSelected(true); // Default to selected
+                        if (configCheckboxes != null) {
+                            configCheckboxes.put(config, checkbox);
+                        }
+                    }
+                    
+                    checkbox.setOpaque(false);
+                    
+                    // Create label for text
+                    JLabel textLabel = new JLabel(config.toString());
+                    textLabel.setOpaque(false);
+                    if (isSelected) {
+                        textLabel.setForeground(list.getSelectionForeground());
+                    } else {
+                        textLabel.setForeground(list.getForeground());
+                    }
+                    
+                    // Add components
+                    panel.add(textLabel, BorderLayout.CENTER);
+                    panel.add(checkbox, BorderLayout.EAST);
+                    
+                    panel.setToolTipText(String.format("Algorithm: %s, Tiebreaker: %c, Sight Radius: %d",
+                            config.getAlgorithmType(), config.getTiebreaker(), config.getSightRadius()));
+                    
+                    return panel;
+                } else {
+                    // Regular list mode for interactive solver
+                    super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                    setText(config.toString());
+                    setToolTipText(String.format("Algorithm: %s, Tiebreaker: %c, Sight Radius: %d",
+                            config.getAlgorithmType(), config.getTiebreaker(), config.getSightRadius()));
+                    return this;
+                }
+            }
+            
+            return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
         }
     }
 
