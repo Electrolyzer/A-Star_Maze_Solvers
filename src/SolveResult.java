@@ -48,11 +48,9 @@ public record SolveResult(
     }
 
     public String getDisplayName() {
-        return String.format("%s (t:%c, r:%d) - %s",
-                algorithmName != null ? algorithmName : "Unknown",
-                tiebreaker,
-                sightRadius,
-                solved ? "Solved" : "Unsolved");
+        return String.format("%s - %s",
+                solved ? "Solved" : "Unsolved",
+                algorithmName != null ? algorithmName : "Unknown");
     }
 
     @Override

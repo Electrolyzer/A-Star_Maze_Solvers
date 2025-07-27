@@ -92,6 +92,10 @@ public class UnifiedMazeSolverUI extends JFrame implements GenericMazeAnalyzer.A
         // Create Interactive Solver tab
         JPanel solverTab = createInteractiveSolverTab();
         mainTabbedPane.addTab("Interactive Solver", solverTab);
+
+        // Create Saved Results tab
+        JPanel savedResultsTab = createSavedResultsTab();
+        mainTabbedPane.addTab("Saved Results", savedResultsTab);
         
         // Create Performance Analysis tab
         JPanel analysisTab = createPerformanceAnalysisTab();
@@ -135,15 +139,13 @@ public class UnifiedMazeSolverUI extends JFrame implements GenericMazeAnalyzer.A
                 if (index >= 0) {
                     AlgorithmConfig config = configListModel.getElementAt(index);
                     
-                    if (e.getClickCount() == 1 && mainTabbedPane.getSelectedIndex() == 1) {
+                    if (e.getClickCount() == 1 && mainTabbedPane.getSelectedIndex() == 2) {
                         // Single click in performance analysis mode - handle checkbox
                         Rectangle cellBounds = configList.getCellBounds(index, index);
                         if (cellBounds != null) {
                             // Check if click was on the right side (checkbox area)
-                            int relativeX = e.getX() - cellBounds.x;
-                            int checkboxAreaStart = cellBounds.width - 30; // Approximate checkbox area
                             
-                            if (relativeX > checkboxAreaStart && configCheckboxes != null) {
+                            if (configCheckboxes != null) {
                                 JCheckBox checkbox = configCheckboxes.get(config);
                                 if (checkbox != null) {
                                     checkbox.setSelected(!checkbox.isSelected());
@@ -213,7 +215,7 @@ public class UnifiedMazeSolverUI extends JFrame implements GenericMazeAnalyzer.A
         
         // Update tab change listener to show/hide selection buttons
         mainTabbedPane.addChangeListener(e -> {
-            boolean isPerformanceMode = mainTabbedPane.getSelectedIndex() == 1;
+            boolean isPerformanceMode = mainTabbedPane.getSelectedIndex() == 2;
             selectionButtonPanel.setVisible(isPerformanceMode);
             configList.repaint(); // Refresh to show/hide checkboxes
         });
@@ -323,26 +325,20 @@ public class UnifiedMazeSolverUI extends JFrame implements GenericMazeAnalyzer.A
             }
         });
         solverPanel.add(solveButton);
+        
+        solverPanel.add(Box.createVerticalStrut(5));
+
+        JButton saveResultButton = new JButton("Save Result");
+        saveResultButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        saveResultButton.addActionListener(e -> saveCurrentResult());
+        solverPanel.add(saveResultButton);
 
         return solverPanel;
     }
 
     private JPanel createResultsPanel() {
-        JPanel resultsPanel = new JPanel();
-        resultsPanel.setBorder(BorderFactory.createTitledBorder("Results"));
-        resultsPanel.setLayout(new BoxLayout(resultsPanel, BoxLayout.Y_AXIS));
-
-        JButton saveResultButton = new JButton("Save Result");
-        JButton loadResultsButton = new JButton("Load Results");
-        
-        saveResultButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        loadResultsButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
-        resultsPanel.add(saveResultButton);
-        resultsPanel.add(Box.createVerticalStrut(5));
-        resultsPanel.add(loadResultsButton);
-
-        return resultsPanel;
+        // This panel is no longer needed since Save Result moved to Solver panel
+        return new JPanel();
     }
 
     private JPanel createPerformanceAnalysisTab() {
@@ -425,6 +421,70 @@ public class UnifiedMazeSolverUI extends JFrame implements GenericMazeAnalyzer.A
         controlPanel.add(generationPanel, gbc);
 
         return controlPanel;
+    }
+
+    private JPanel createSavedResultsTab() {
+        JPanel savedResultsTab = new JPanel(new BorderLayout());
+        
+        // Control panel for loading results
+        JPanel controlPanel = new JPanel(new FlowLayout());
+        JButton loadResultsButton = new JButton("Load Saved Results");
+        loadResultsButton.addActionListener(e -> loadSavedResults());
+        controlPanel.add(loadResultsButton);
+        
+        savedResultsTab.add(controlPanel, BorderLayout.NORTH);
+        
+        // Results viewer for loaded results
+        ResultViewer savedResultsViewer = new ResultViewer();
+        savedResultsTab.add(savedResultsViewer, BorderLayout.CENTER);
+        
+        return savedResultsTab;
+    }
+
+    private void loadSavedResults() {
+        String currentDir = System.getProperty("user.dir") + "/Results";
+        File resultsDir = new File(currentDir);
+        if (!resultsDir.exists()) {
+            resultsDir.mkdirs();
+        }
+        
+        JFileChooser fileChooser = new JFileChooser(currentDir);
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Result files", "result"));
+        fileChooser.setMultiSelectionEnabled(true);
+
+        if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+            File[] files = fileChooser.getSelectedFiles();
+            List<SolveResult> loadedResults = new ArrayList<>();
+
+            for (File file : files) {
+                try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
+                    SolveResult result = (SolveResult) ois.readObject();
+                    loadedResults.add(result);
+                } catch (IOException | ClassNotFoundException e) {
+                    JOptionPane.showMessageDialog(this, "Error loading " + file.getName() + ": " + e.getMessage(),
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+
+            if (!loadedResults.isEmpty()) {
+                // Find the saved results viewer and update it
+                Component savedResultsTab = mainTabbedPane.getComponentAt(2); // Third tab
+                if (savedResultsTab instanceof JPanel) {
+                    JPanel panel = (JPanel) savedResultsTab;
+                    Component[] components = panel.getComponents();
+                    for (Component comp : components) {
+                        if (comp instanceof ResultViewer) {
+                            ResultViewer viewer = (ResultViewer) comp;
+                            viewer.setResults(loadedResults);
+                            break;
+                        }
+                    }
+                }
+                
+                // Switch to the Saved Results tab
+                mainTabbedPane.setSelectedIndex(2);
+            }
+        }
     }
 
     // Inline configuration editor methods
@@ -778,8 +838,8 @@ public class UnifiedMazeSolverUI extends JFrame implements GenericMazeAnalyzer.A
     public void runAnalysis() {
         // Get selected configurations from checkboxes when in performance analysis tab
         java.util.List<AlgorithmConfig> selectedConfigs = new ArrayList<>();
-        
-        if (mainTabbedPane.getSelectedIndex() == 1) { // Performance Analysis tab
+
+        if (mainTabbedPane.getSelectedIndex() == 2) { // Performance Analysis tab
             // Use checkbox selection logic
             if (configCheckboxes != null) {
                 for (Map.Entry<AlgorithmConfig, JCheckBox> entry : configCheckboxes.entrySet()) {
@@ -968,6 +1028,40 @@ public class UnifiedMazeSolverUI extends JFrame implements GenericMazeAnalyzer.A
 
     public void enableRunButton() {
         runAnalysisButton.setEnabled(true);
+    }
+
+    // Save current result from interactive solver
+    private void saveCurrentResult() {
+        SolveResult currentResult = interactiveMazePanel.getCurrentResult();
+        if (currentResult == null) {
+            JOptionPane.showMessageDialog(this, "No result to save! Please solve a maze first.", "No Result", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        String currentDir = System.getProperty("user.dir") + "/Results";
+        File resultsDir = new File(currentDir);
+        if (!resultsDir.exists()) {
+            resultsDir.mkdirs();
+        }
+        
+        JFileChooser fileChooser = new JFileChooser(currentDir);
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Result files", "result"));
+
+        if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+            File file = fileChooser.getSelectedFile();
+            if (!file.getName().endsWith(".result")) {
+                file = new File(file.getAbsolutePath() + ".result");
+            }
+
+            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file))) {
+                oos.writeObject(currentResult);
+                JOptionPane.showMessageDialog(this, "Result saved successfully!", "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(this, "Error saving result: " + e.getMessage(), "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        }
     }
 
     // Interactive maze panel with full functionality
@@ -1162,14 +1256,43 @@ public class UnifiedMazeSolverUI extends JFrame implements GenericMazeAnalyzer.A
 
         private void updateSolverButtonInPanel(Container container) {
             for (Component comp : container.getComponents()) {
-                if (comp instanceof JButton && ((JButton) comp).getText().contains("Solve")) {
-                    JButton button = (JButton) comp;
-                    if (isInSolveMode) {
-                        button.setText("Edit Maze");
-                    } else {
-                        button.setText("Solve Maze");
+                if (comp instanceof JPanel) {
+                    JPanel panel = (JPanel) comp;
+                    if (panel.getBorder() instanceof javax.swing.border.TitledBorder) {
+                        javax.swing.border.TitledBorder border = (javax.swing.border.TitledBorder) panel.getBorder();
+                        if ("Solver".equals(border.getTitle())) {
+                            // Found solver panel, update the solve button
+                            for (Component solverComp : panel.getComponents()) {
+                                if (solverComp instanceof JButton) {
+                                    JButton button = (JButton) solverComp;
+                                    if (button.getText().contains("Solve") || button.getText().contains("Edit")) {
+                                        if (isInSolveMode) {
+                                            button.setText("Edit Maze");
+                                        } else {
+                                            button.setText("Solve Maze");
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+                            return;
+                        } else if ("Maze Editing".equals(border.getTitle())) {
+                            // Found maze editing panel, disable/enable buttons based on mode
+                            for (Component editComp : panel.getComponents()) {
+                                if (editComp instanceof JPanel) {
+                                    JPanel buttonPanel = (JPanel) editComp;
+                                    for (Component buttonComp : buttonPanel.getComponents()) {
+                                        if (buttonComp instanceof JButton) {
+                                            JButton button = (JButton) buttonComp;
+                                            if (button.getText().contains("Reset") || button.getText().contains("Clear")) {
+                                                button.setEnabled(!isInSolveMode);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
-                    return;
                 } else if (comp instanceof Container) {
                     updateSolverButtonInPanel((Container) comp);
                 }
@@ -1355,7 +1478,7 @@ public class UnifiedMazeSolverUI extends JFrame implements GenericMazeAnalyzer.A
                 AlgorithmConfig config = (AlgorithmConfig) value;
                 
                 // Check if we're in performance analysis mode
-                boolean isPerformanceMode = mainTabbedPane.getSelectedIndex() == 1;
+                boolean isPerformanceMode = mainTabbedPane.getSelectedIndex() == 2;
                 
                 if (isPerformanceMode) {
                     // Create a panel with checkbox and text
@@ -1593,11 +1716,19 @@ public class UnifiedMazeSolverUI extends JFrame implements GenericMazeAnalyzer.A
                 this.currentMaze = result.originalMaze() != null ? deepCopy(result.originalMaze()) : new int[10][10];
 
                 setLayout(new BorderLayout());
-                setBorder(BorderFactory.createTitledBorder(result.getDisplayName()));
-
-                // Combine both in the border title
-                String combinedTitle = String.format("%s (Expanded: %d, Time: %dms)",
+                // Create title with algorithm abbreviation format
+                String algorithmAbbrev = switch (result.algorithmName()) {
+                    case "Forward A*" -> "f";
+                    case "Backward A*" -> "b";
+                    case "Adaptive A*" -> "a";
+                    default -> "?";
+                };
+                
+                String combinedTitle = String.format("%s (a:%s, t:%c, r:%d) - Expanded: %d, Time: %dms",
                         result.getDisplayName(),
+                        algorithmAbbrev,
+                        result.tiebreaker(),
+                        result.sightRadius(),
                         result.expandedCells(),
                         result.solutionTimeMs());
 
