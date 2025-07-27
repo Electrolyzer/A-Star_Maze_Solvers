@@ -56,6 +56,7 @@ public class UnifiedMazeSolverUI extends JFrame implements GenericMazeAnalyzer.A
         // Initialize shared data structures
         algorithmConfigs = new ArrayList<>();
         configListModel = new DefaultListModel<>();
+        configCheckboxes = new HashMap<>();
         results = new HashMap<>();
         analyzer = new GenericMazeAnalyzer(this);
 
@@ -168,18 +169,54 @@ public class UnifiedMazeSolverUI extends JFrame implements GenericMazeAnalyzer.A
         });
 
         // Configuration management buttons
-        JPanel configButtonPanel = new JPanel(new GridLayout(1, 2, 5, 5));
-
+        JPanel configButtonPanel = new JPanel(new BorderLayout());
+        
+        // Regular management buttons (always visible)
+        JPanel managementButtonPanel = new JPanel(new GridLayout(1, 2, 5, 5));
         JButton removeConfigButton = new JButton("Remove Selected");
         removeConfigButton.addActionListener(e -> removeSelectedConfig());
-
         JButton saveConfigsButton = new JButton("Save All to File");
         saveConfigsButton.addActionListener(e -> saveConfigurations());
-
-        configButtonPanel.add(removeConfigButton);
-        configButtonPanel.add(saveConfigsButton);
-
+        managementButtonPanel.add(removeConfigButton);
+        managementButtonPanel.add(saveConfigsButton);
+        
+        // Select/Deselect buttons (only visible in Performance Analysis mode)
+        JPanel selectionButtonPanel = new JPanel(new GridLayout(1, 2, 5, 5));
+        JButton selectAllButton = new JButton("Select All");
+        selectAllButton.addActionListener(e -> {
+            if (configCheckboxes != null) {
+                for (JCheckBox checkbox : configCheckboxes.values()) {
+                    checkbox.setSelected(true);
+                }
+                configList.repaint();
+            }
+        });
+        JButton deselectAllButton = new JButton("Deselect All");
+        deselectAllButton.addActionListener(e -> {
+            if (configCheckboxes != null) {
+                for (JCheckBox checkbox : configCheckboxes.values()) {
+                    checkbox.setSelected(false);
+                }
+                configList.repaint();
+            }
+        });
+        selectionButtonPanel.add(selectAllButton);
+        selectionButtonPanel.add(deselectAllButton);
+        
+        // Initially hide selection buttons
+        selectionButtonPanel.setVisible(false);
+        
+        configButtonPanel.add(managementButtonPanel, BorderLayout.NORTH);
+        configButtonPanel.add(selectionButtonPanel, BorderLayout.SOUTH);
+        
         configPanel.add(configButtonPanel, BorderLayout.SOUTH);
+        
+        // Update tab change listener to show/hide selection buttons
+        mainTabbedPane.addChangeListener(e -> {
+            boolean isPerformanceMode = mainTabbedPane.getSelectedIndex() == 1;
+            selectionButtonPanel.setVisible(isPerformanceMode);
+            configList.repaint(); // Refresh to show/hide checkboxes
+        });
 
         return configPanel;
     }
