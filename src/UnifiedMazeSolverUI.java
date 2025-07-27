@@ -1303,7 +1303,7 @@ public class UnifiedMazeSolverUI extends JFrame implements GenericMazeAnalyzer.A
                 
                 if (isPerformanceMode) {
                     // Create a panel with checkbox and text
-                    JPanel panel = new JPanel(new BorderLayout());
+                    JPanel panel = new JPanel(new BorderLayout(5, 0));
                     panel.setOpaque(true);
                     
                     // Set background color based on selection
@@ -1325,20 +1325,40 @@ public class UnifiedMazeSolverUI extends JFrame implements GenericMazeAnalyzer.A
                         }
                     }
                     
-                    checkbox.setOpaque(false);
+                    // Make checkbox clickable by adding mouse listener to the panel
+                    panel.addMouseListener(new java.awt.event.MouseAdapter() {
+                        @Override
+                        public void mouseClicked(java.awt.event.MouseEvent e) {
+                            // Check if click was on the checkbox area (right side)
+                            int checkboxWidth = 20;
+                            if (e.getX() > panel.getWidth() - checkboxWidth - 10) {
+                                checkbox.setSelected(!checkbox.isSelected());
+                                panel.repaint();
+                            }
+                        }
+                    });
                     
-                    // Create label for text
+                    checkbox.setOpaque(false);
+                    checkbox.setFocusable(false); // Prevent focus issues
+                    
+                    // Create label for text with consistent width
                     JLabel textLabel = new JLabel(config.toString());
                     textLabel.setOpaque(false);
+                    textLabel.setBorder(BorderFactory.createEmptyBorder(2, 5, 2, 5)); // Consistent padding
                     if (isSelected) {
                         textLabel.setForeground(list.getSelectionForeground());
                     } else {
                         textLabel.setForeground(list.getForeground());
                     }
                     
-                    // Add components
+                    // Add components with consistent spacing
                     panel.add(textLabel, BorderLayout.CENTER);
-                    panel.add(checkbox, BorderLayout.EAST);
+                    
+                    // Wrap checkbox in a panel to ensure consistent positioning
+                    JPanel checkboxPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
+                    checkboxPanel.setOpaque(false);
+                    checkboxPanel.add(checkbox);
+                    panel.add(checkboxPanel, BorderLayout.EAST);
                     
                     panel.setToolTipText(String.format("Algorithm: %s, Tiebreaker: %c, Sight Radius: %d",
                             config.getAlgorithmType(), config.getTiebreaker(), config.getSightRadius()));
@@ -1348,6 +1368,7 @@ public class UnifiedMazeSolverUI extends JFrame implements GenericMazeAnalyzer.A
                     // Regular list mode for interactive solver
                     super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                     setText(config.toString());
+                    setBorder(BorderFactory.createEmptyBorder(2, 5, 2, 5)); // Match padding
                     setToolTipText(String.format("Algorithm: %s, Tiebreaker: %c, Sight Radius: %d",
                             config.getAlgorithmType(), config.getTiebreaker(), config.getSightRadius()));
                     return this;
