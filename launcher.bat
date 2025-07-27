@@ -10,24 +10,26 @@ echo  ║                A* Maze Solver - Main Launcher                ║
 echo  ╠══════════════════════════════════════════════════════════════╣
 echo  ║                                                              ║
 echo  ║  1. Build Project                                            ║
-echo  ║  2. Run Interactive Maze Editor                              ║
-echo  ║  3. Run Performance Data Collector                           ║
-echo  ║  4. Test Build System                                        ║
-echo  ║  5. View README                                              ║
-echo  ║  6. View Demo Guide                                          ║
-echo  ║  7. Exit                                                     ║
+echo  ║  2. Run Unified Maze Solver (Recommended)                   ║
+echo  ║  3. Run Interactive Maze Editor (Legacy)                    ║
+echo  ║  4. Run Performance Data Collector (Legacy)                 ║
+echo  ║  5. Test Build System                                        ║
+echo  ║  6. View README                                              ║
+echo  ║  7. View Demo Guide                                          ║
+echo  ║  8. Exit                                                     ║
 echo  ║                                                              ║
 echo  ╚══════════════════════════════════════════════════════════════╝
 echo.
-set /p choice="Enter your choice (1-7): "
+set /p choice="Enter your choice (1-8): "
 
 if "%choice%"=="1" goto build
-if "%choice%"=="2" goto mazetester
-if "%choice%"=="3" goto datacollector
-if "%choice%"=="4" goto test
-if "%choice%"=="5" goto readme
-if "%choice%"=="6" goto demoguide
-if "%choice%"=="7" goto exit
+if "%choice%"=="2" goto unified
+if "%choice%"=="3" goto mazetester
+if "%choice%"=="4" goto datacollector
+if "%choice%"=="5" goto test
+if "%choice%"=="6" goto readme
+if "%choice%"=="7" goto demoguide
+if "%choice%"=="8" goto exit
 
 echo Invalid choice. Please try again.
 pause
@@ -37,6 +39,12 @@ goto menu
 cls
 echo Building project...
 call build.bat
+goto menu
+
+:unified
+cls
+echo Starting Unified Maze Solver...
+call run-unified.bat
 goto menu
 
 :mazetester
