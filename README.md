@@ -1,200 +1,144 @@
-# A* Maze Solver - Interactive Algorithm Comparison Tool
+# A* Maze Solver
 
-A comprehensive Java implementation of A* search algorithms with interactive visualization and performance analysis capabilities. This project demonstrates advanced algorithmic concepts, GUI development, and data analysis techniques.
+A Java implementation of A* search algorithms for maze solving with limited knowledge. The application provides an interactive interface for creating and solving mazes, along with performance analysis tools for comparing different algorithm variants.
 
-![Java](https://img.shields.io/badge/Java-17+-orange.svg)
-![License](https://img.shields.io/badge/License-MIT-blue.svg)
-![Build](https://img.shields.io/badge/Build-Passing-green.svg)
+## Overview
 
-## Project Overview
-
-This project implements and compares three variants of the A* search algorithm for maze solving:
+This project implements three variants of the A* search algorithm for environments with partial observability:
 
 - **Repeated Forward A*** - Plans from current position to goal
 - **Repeated Backward A*** - Plans from goal to current position  
 - **Adaptive A*** - Learns better heuristics from previous searches
 
-The application features two main components:
-1. **Interactive Maze Editor** - Create, edit, and solve mazes step-by-step
-2. **Data Collector** - Run large-scale performance analysis across multiple mazes
+Each algorithm can be configured with different parameters:
+- **Tiebreaker strategy** (g-value or h-value preference)
+- **Sight radius** (1-20 cells, simulating limited knowledge)
+- **Algorithm type** (Forward, Backward, or Adaptive)
 
-## Key Features
+The application features three main modes:
+1. **Interactive Solver** - Create, edit, and solve mazes with step-by-step visualization
+2. **Saved Results** - Load and analyze saved maze solutions side by side
+3. **Performance Analysis** - Run batch tests across multiple mazes and compare algorithm performance
 
-### Algorithm Implementation
-- Three A* variants with configurable parameters
-- Partial maze observability with sight radius simulation
-- Tiebreaker strategies (g-value vs h-value preference)
-- Step-by-step visualization of search process
-
-### Interactive Tools
-- **Maze Editor**: Create custom mazes with intuitive click-to-edit interface
-- **Real-time Visualization**: Watch algorithms solve mazes step-by-step
-- **Algorithm Comparison**: Run multiple algorithms on the same maze
-- **Save/Load System**: Persist results for later analysis
-
-### Performance Analysis
-- **Batch Processing**: Analyze performance across 50+ predetermined mazes
-- **Statistical Analysis**: Compare expanded cells, execution time, success rates
-- **Heat Maps**: Visualize exploration patterns across different algorithms
-- **Export Capabilities**: Save results and visualizations
-
-## Technology Stack
-
-- **Language**: Java 17+
-- **GUI Framework**: Swing with FlatLaf modern look-and-feel
-- **Testing**: JUnit 5
-- **Build System**: Custom scripts with organized build directory (Windows batch + Unix shell)
-- **Data Structures**: Custom priority queue implementation
-- **Algorithms**: A* search with Manhattan distance heuristic
-
-## Quick Start
+## Installation
 
 ### Prerequisites
 - Java 17 or higher
 
-### Installation & Running
+### Running the Application
 
-**Easiest Way:**
+**Windows:**
 ```bash
-# Clone the repository
-git clone https://github.com/Electrolyzer/A-Star_Maze_Solvers.git
-cd A-Star_Maze_Solvers
-
-# Simply double-click launcher.bat (Windows) - No command line needed!
-# Or run from command line:
-.\launcher.bat
-```
-
-**Manual Commands (Windows):**
-```bash
-# Build the project
-.\build.bat
-
-# Run the interactive maze editor
-.\run-mazetester.bat
-
-# Run the data collector for performance analysis
-.\run-datacollector.bat
-
-# Test the build system
-.\test-build.bat
-
-# Clean build files
-.\clean.bat
+.\launcher.bat          # Standard launcher
+.\dev-launcher.bat      # Development launcher (always rebuilds)
 ```
 
 **Unix/Linux/macOS:**
 ```bash
-# Clone the repository
-git clone https://github.com/Electrolyzer/A-Star_Maze_Solvers.git
-cd A-Star_Maze_Solvers
-
-# Build the project
-./build.sh
-
-# Run the interactive maze editor
-./run-mazetester.sh
-
-# Run the data collector for performance analysis
-./run-datacollector.sh
+./launcher.sh           # Standard launcher  
+./dev-launcher.sh       # Development launcher (always rebuilds)
 ```
 
-## Usage Guide
+The launcher will automatically build the project if needed and start the application.
 
-### Interactive Maze Editor
-1. **Create/Edit Mazes**: Use the editing tools to place start/end points and walls
-2. **Configure Algorithm**: Select algorithm type, tiebreaker, and sight radius
-3. **Solve**: Watch the algorithm solve the maze step-by-step
-4. **Save Results**: Export solving sessions for later analysis
+## Usage
 
-### Data Collector
-1. **Select Algorithms**: Choose which A* variants to compare
-2. **Configure Parameters**: Set maze size, count, and algorithm parameters
-3. **Run Analysis**: Process multiple mazes and collect performance data
-4. **View Results**: Analyze performance tables, statistics, and heat maps
+### Interactive Mode
+- Use the maze editor to create custom mazes or load existing ones
+- Configure algorithm parameters in the left panel
+- Click "Solve Maze" to watch the algorithm find a path
+- Save results for later analysis
 
-## Algorithm Performance
+### Result Viewer
+- View saved results from Interactive Mode side-by-side
+- Step results in time with each other for comparison
 
-The project includes comprehensive performance testing across 50 predetermined mazes. Key metrics include:
+### Performance Analysis
+- Select multiple algorithm configurations to compare
+- Choose between predetermined mazes (50 included) or generate random ones
+- Run batch analysis to see performance statistics and heat maps
+- Export results for external analysis
 
-- **Expanded Cells**: Number of nodes explored during search
-- **Execution Time**: Algorithm runtime in milliseconds
-- **Success Rate**: Percentage of successfully solved mazes
-- **Memory Usage**: Exploration pattern analysis via heat maps
+### Configuration Management
+- Create and save custom algorithm configurations
+- Configurations persist between sessions
+- Use configurations in all other modes
 
-### Sample Results
-| Algorithm | Avg Expanded Cells | Avg Time (ms) | Success Rate |
-|-----------|-------------------|---------------|--------------|
-| Forward A* (g) | 9,847 | 12.3 | 100% |
-| Forward A* (h) | 254,891 | 45.7 | 100% |
-| Backward A* (g) | 125,432 | 28.9 | 100% |
-| Adaptive A* (g) | 9,623 | 13.1 | 100% |
+## Project Structure
 
-## Architecture
+```
+A-Star/
+├── launcher.bat/.sh          # Application launchers
+├── dev-launcher.bat/.sh      # Development launchers
+├── src/                      # Source code
+├── scripts/                  # Build scripts
+├── lib/                      # Dependencies (FlatLaf, JUnit)
+├── mazes/                    # Sample maze files
+├── config/                   # User configurations (auto-generated)
+└── results/                  # Saved results (auto-generated)
+```
 
-### Core Components
-- **MazeSolver**: Implements the three A* algorithm variants
-- **MazeGenerator**: Creates random solvable mazes
-- **PriorityQueue**: Custom implementation optimized for A* search
-- **DataCollectorUI**: Comprehensive analysis interface
-- **MazeSolverTester**: Interactive maze editing and solving
+## Algorithm Details
 
-### Design Patterns
-- **Strategy Pattern**: Interchangeable algorithm implementations
-- **Observer Pattern**: UI updates during algorithm execution
-- **Factory Pattern**: Maze generation with different parameters
-- **Command Pattern**: Undo/redo functionality in maze editor
+### Implementation Features
+- Custom priority queue optimized for A* search
+- Configurable heuristic functions (Manhattan distance)
+- Support for partial observability through sight radius
+- Real-time visualization of search progress
+- Performance metrics tracking (cells expanded, execution time)
+
+### Performance Characteristics
+Testing across 50 predetermined mazes shows significant performance differences:
+
+| Algorithm | Avg Expanded Cells | Avg Time (ms) |
+|-----------|-------------------|---------------|
+| Forward A* (g-tie) | 9,847 | 12.3 |
+| Forward A* (h-tie) | 254,891 | 45.7 |
+| Backward A* (g-tie) | 125,432 | 28.9 |
+| Adaptive A* (g-tie) | 9,623 | 13.1 |
+
+## Building from Source
+
+**Manual build:**
+```bash
+# Windows
+.\scripts\build.bat
+
+# Unix/Linux/macOS
+./scripts/build.sh
+```
+
+**Clean build:**
+```bash
+# Windows  
+.\scripts\clean.bat
+.\scripts\build.bat
+
+# Unix/Linux/macOS
+./scripts/clean.sh
+./scripts/build.sh
+```
 
 ## Testing
 
-The project includes comprehensive unit tests that verify algorithm correctness:
-
+Run the included unit tests:
 ```bash
-# Run unit tests (if IDE doesn't auto-run)
 javac -cp "lib/*" src/*.java
 java -cp ".;lib/junit.jar" org.junit.platform.console.ConsoleLauncher --select-class src.UnitTests
 ```
 
-Tests validate that each algorithm produces expected results on predetermined mazes, ensuring implementation correctness.
+## Technical Details
 
-## Performance Optimizations
-
-- **Efficient Data Structures**: Custom priority queue with O(log n) operations
-- **Memory Management**: Reusable data structures across search iterations
-- **Heuristic Learning**: Adaptive A* improves performance over time
-- **Sight Radius Optimization**: Configurable observation distance for realistic scenarios
-
-## Educational Value
-
-This project demonstrates:
-- **Algorithm Design**: Implementation of classic AI search algorithms
-- **Data Structure Optimization**: Custom priority queue for performance
-- **GUI Development**: Complex Swing interfaces with custom rendering
-- **Performance Analysis**: Statistical comparison of algorithm variants
-- **Software Engineering**: Clean architecture, testing, and documentation
-
-## Future Enhancements
-
-- [ ] Additional search algorithms (Dijkstra, Greedy Best-First)
-- [ ] 3D maze support
-- [ ] Network-based multiplayer maze solving
-- [ ] Machine learning integration for heuristic optimization
-- [ ] Web-based interface using Java-to-JavaScript compilation
+- **Language:** Java 17+
+- **GUI:** Swing with FlatLaf look-and-feel
+- **Build System:** Custom scripts with smart build detection
+- **Data Storage:** Serialized objects for configurations and results
+- **Testing:** JUnit 5
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+MIT License - see LICENSE file for details.
 
 ## Contact
 
-**Jesse** - [GitHub Profile](https://github.com/Electrolyzer)
-
-Project Link: [https://github.com/Electrolyzer/A-Star_Maze_Solvers](https://github.com/Electrolyzer/A-Star_Maze_Solvers)
-
----
-
-*This project showcases advanced Java programming, algorithm implementation, and software engineering practices suitable for technical interviews and portfolio demonstrations.*
+Jesse Lerner - [GitHub](https://github.com/Electrolyzer)
