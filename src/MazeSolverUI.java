@@ -102,6 +102,11 @@ public class MazeSolverUI extends JFrame {
         controlPanel.add(currentConfigPanel);
         controlPanel.add(Box.createVerticalStrut(10));
 
+        // Legend panel
+        JPanel legendPanel = createLegendPanel();
+        controlPanel.add(legendPanel);
+        controlPanel.add(Box.createVerticalStrut(10));
+
         // Maze editing controls
         JPanel editPanel = createMazeEditingPanel();
         controlPanel.add(editPanel);
@@ -141,6 +146,56 @@ public class MazeSolverUI extends JFrame {
         editPanel.add(buttonPanel);
 
         return editPanel;
+    }
+
+    private JPanel createLegendPanel() {
+        JPanel legendPanel = new JPanel();
+        legendPanel.setBorder(BorderFactory.createTitledBorder("Cell Color Legend"));
+        legendPanel.setLayout(new BoxLayout(legendPanel, BoxLayout.Y_AXIS));
+
+        // Create legend items with color squares and labels
+        String[][] legendItems = {
+            {"White", "Unblocked"},
+            {"Black", "Wall"},
+            {"Gray", "Unknown"},
+            {"Pink", "Explored"},
+            {"Yellow", "Path/Current"},
+            {"Green", "Start"},
+            {"Red", "End"}
+        };
+
+        Color[] legendColors = {
+            Color.WHITE,
+            Color.BLACK,
+            Color.GRAY,
+            Color.PINK,
+            Color.YELLOW,
+            Color.GREEN,
+            Color.RED
+        };
+
+        for (int i = 0; i < legendItems.length; i++) {
+            JPanel itemPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 5));
+
+            // Create color square
+            JPanel colorSquare = new JPanel();
+            colorSquare.setBackground(legendColors[i]);
+            colorSquare.setPreferredSize(new Dimension(30, 30));
+            colorSquare.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+            
+            // Create label
+            JLabel label = new JLabel(legendItems[i][1]);
+            label.setFont(label.getFont().deriveFont(14f));
+            
+            itemPanel.add(colorSquare);
+            itemPanel.add(label);
+            legendPanel.add(itemPanel);
+        }
+
+        // Add some extra padding to make the panel taller
+        legendPanel.add(Box.createVerticalStrut(10));
+
+        return legendPanel;
     }
 
     private JPanel createSolverPanel() {
