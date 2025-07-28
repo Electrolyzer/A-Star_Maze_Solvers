@@ -126,5 +126,9 @@ build/
 **/build/
 
 # Results directory (generated at runtime)
-Results/
-**/Results/
+results/
+**/results/
+
+# Config files
+config/
+**/config/
