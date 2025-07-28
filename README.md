@@ -148,26 +148,6 @@ This project is featured in my professional portfolio at [Jesse's Portfolio](htt
 - **Technical implementation** details and architecture overview
 - **Installation guides** for different platforms
 
-## Screenshots & Demos
-
-Key visual assets showcasing the application:
-
-### Main Interface
-![Main Interface](Portfolio/projects/astar-solver/images/main-interface.png)
-*The unified interface with three integrated modes: Interactive Solver, Performance Analysis, and Saved Results*
-
-### Algorithm Visualization
-![Algorithm in Action](Portfolio/projects/astar-solver/images/algorithm-visualization.gif)
-*Real-time pathfinding visualization showing explored cells and optimal path discovery*
-
-### Performance Analysis
-![Performance Dashboard](Portfolio/projects/astar-solver/images/performance-analysis.png)
-*Heat map visualizations and statistical comparisons between algorithm variants*
-
-### Configuration Interface
-![Configuration Panel](Portfolio/projects/astar-solver/images/configuration-interface.png)
-*Algorithm parameter configuration with persistent settings management*
-
 ## Contact
 
-Jesse Lerner - [GitHub](https://github.com/Electrolyzer) - [Portfolio](https://electrolyzer.github.io/Portfolio/)
+Jesse Lerner - [LinkedIn](https://www.linkedin.com/in/jesse-lerner/) - [GitHub](https://github.com/Electrolyzer) - [Portfolio](https://electrolyzer.github.io/Portfolio/)
