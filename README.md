@@ -51,17 +51,17 @@ The application features two main components:
 
 ### Prerequisites
 - Java 17 or higher
-- Windows (batch files) or Unix/Linux (shell scripts)
 
 ### Installation & Running
 
-**Quick Start (Windows):**
+**Easiest Way:**
 ```bash
 # Clone the repository
 git clone https://github.com/Electrolyzer/A-Star_Maze_Solvers.git
 cd A-Star_Maze_Solvers
 
-# Use the interactive launcher (recommended)
+# Simply double-click launcher.bat (Windows) - No command line needed!
+# Or run from command line:
 .\launcher.bat
 ```
 
