@@ -10,8 +10,8 @@ REM Change to the directory containing this script
 cd /d "%~dp0"
 
 REM Clean, build, and run silently
-start "" /B cmd /c clean.bat
-start "" /B cmd /c build.bat
+call scripts\clean.bat
+call scripts\build.bat
 if %ERRORLEVEL% neq 0 exit /b 1
 
 REM Launch the application and exit
