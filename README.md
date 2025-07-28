@@ -17,7 +17,7 @@ Each algorithm can be configured with different parameters:
 
 The application features three main modes:
 1. **Interactive Solver** - Create, edit, and solve mazes with step-by-step visualization
-2. **Saved Results** - Load and analyze saved maze solutions side by side
+2. **Saved Results** - Load and analyze previously saved maze solutions
 3. **Performance Analysis** - Run batch tests across multiple mazes and compare algorithm performance
 
 ## Installation
@@ -139,6 +139,35 @@ java -cp ".;lib/junit.jar" org.junit.platform.console.ConsoleLauncher --select-c
 
 MIT License - see LICENSE file for details.
 
+## Portfolio Integration
+
+This project is featured in my professional portfolio at [Jesse's Portfolio](https://electrolyzer.github.io/Portfolio/). The portfolio page includes:
+
+- **Visual demonstrations** of the algorithm in action
+- **Performance analysis** with heat map visualizations  
+- **Technical implementation** details and architecture overview
+- **Installation guides** for different platforms
+
+## Screenshots & Demos
+
+Key visual assets showcasing the application:
+
+### Main Interface
+![Main Interface](Portfolio/projects/astar-solver/images/main-interface.png)
+*The unified interface with three integrated modes: Interactive Solver, Performance Analysis, and Saved Results*
+
+### Algorithm Visualization
+![Algorithm in Action](Portfolio/projects/astar-solver/images/algorithm-visualization.gif)
+*Real-time pathfinding visualization showing explored cells and optimal path discovery*
+
+### Performance Analysis
+![Performance Dashboard](Portfolio/projects/astar-solver/images/performance-analysis.png)
+*Heat map visualizations and statistical comparisons between algorithm variants*
+
+### Configuration Interface
+![Configuration Panel](Portfolio/projects/astar-solver/images/configuration-interface.png)
+*Algorithm parameter configuration with persistent settings management*
+
 ## Contact
 
-Jesse Lerner - [GitHub](https://github.com/Electrolyzer)
+Jesse Lerner - [GitHub](https://github.com/Electrolyzer) - [Portfolio](https://electrolyzer.github.io/Portfolio/)
