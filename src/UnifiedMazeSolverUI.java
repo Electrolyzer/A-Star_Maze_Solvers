@@ -153,6 +153,7 @@ public class UnifiedMazeSolverUI extends JFrame {
         });
 
         JButton saveResultButton = new JButton("Save Result");
+        saveResultButton.setEnabled(false); // Initially disabled
         saveResultButton.addActionListener(e -> saveCurrentResult());
 
         buttonPanel.add(solveButton);
@@ -223,7 +224,9 @@ public class UnifiedMazeSolverUI extends JFrame {
                                             } else {
                                                 button.setText("Solve Maze");
                                             }
-                                            return;
+                                        } else if (button.getText().contains("Save Result")) {
+                                            // Disable Save Result button in edit mode
+                                            button.setEnabled(interactiveMazePanel.isInSolveMode());
                                         }
                                     }
                                 }

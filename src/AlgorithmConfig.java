@@ -4,7 +4,8 @@ package src;
 /**
  * Algorithm configuration class implementing the common interface
  */
-public class AlgorithmConfig implements AlgorithmConfiguration {
+public class AlgorithmConfig implements AlgorithmConfiguration{
+    private static final long serialVersionUID = 1L;
     private String name;
     private String algorithmType;
     private char tiebreaker;

@@ -119,6 +119,7 @@ downloads/
 *.exe
 *.save
 *.result
+*.dat
 
 # Build directory
 build/

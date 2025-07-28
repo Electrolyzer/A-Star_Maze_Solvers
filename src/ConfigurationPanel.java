@@ -35,8 +35,8 @@ public class ConfigurationPanel extends JPanel {
         this.algorithmConfigs = new ArrayList<>();
         this.configListModel = new DefaultListModel<>();
         this.configCheckboxes = new HashMap<>();
-
-        initializeDefaultConfigurations();
+        
+        loadConfigurations();
         setupUI();
     }
 
@@ -52,6 +52,55 @@ public class ConfigurationPanel extends JPanel {
 
         // Set default solver configuration
         currentSolverConfig = algorithmConfigs.get(0);
+    }
+
+    private void loadConfigurations() {
+        File configFile = new File("configs.dat");
+        if (configFile.exists()) {
+            try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(configFile))) {
+                @SuppressWarnings("unchecked")
+                java.util.List<AlgorithmConfig> loadedConfigs = (java.util.List<AlgorithmConfig>) ois.readObject();
+                
+                // Check if default configurations are present
+                boolean hasDefaults = loadedConfigs.stream().anyMatch(config -> 
+                    config.getName().equals("Forward A* (g-tie)") ||
+                    config.getName().equals("Forward A* (h-tie)") ||
+                    config.getName().equals("Backward A* (g-tie)") ||
+                    config.getName().equals("Adaptive A* (g-tSie)")
+                );
+                
+                if (!hasDefaults) {
+                    // Add default configurations if not present
+                    loadedConfigs.add(0, new AlgorithmConfig("Forward A* (g-tie)", "Forward", 'g', 1));
+                    loadedConfigs.add(1, new AlgorithmConfig("Forward A* (h-tie)", "Forward", 'h', 1));
+                    loadedConfigs.add(2, new AlgorithmConfig("Backward A* (g-tie)", "Backward", 'g', 1));
+                    loadedConfigs.add(3, new AlgorithmConfig("Adaptive A* (g-tie)", "Adaptive", 'g', 1));
+                }
+                
+                algorithmConfigs.addAll(loadedConfigs);
+                for (AlgorithmConfig config : algorithmConfigs) {
+                    configListModel.addElement(config);
+                }
+                
+                // Set default solver configuration
+                currentSolverConfig = algorithmConfigs.get(0);
+                
+            } catch (IOException | ClassNotFoundException e) {
+                // If loading fails, initialize with defaults
+                initializeDefaultConfigurations();
+            }
+        } else {
+            // No saved configurations, initialize with defaults
+            initializeDefaultConfigurations();
+        }
+    }
+
+    private void autoSaveConfigurations() {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("configs.dat"))) {
+            oos.writeObject(algorithmConfigs);
+        } catch (IOException e) {
+            // Silent failure for auto-save
+        }
     }
 
     private void setupUI() {
@@ -124,10 +173,10 @@ public class ConfigurationPanel extends JPanel {
         JPanel managementButtonPanel = new JPanel(new GridLayout(1, 2, 5, 5));
         JButton removeConfigButton = new JButton("Remove Selected");
         removeConfigButton.addActionListener(e -> removeSelectedConfig());
-        JButton saveConfigsButton = new JButton("Save All to File");
-        saveConfigsButton.addActionListener(e -> saveConfigurations());
+        JButton editSelectedButton = new JButton("Edit Selected");
+        editSelectedButton.addActionListener(e -> editSelectedConfig());
         managementButtonPanel.add(removeConfigButton);
-        managementButtonPanel.add(saveConfigsButton);
+        managementButtonPanel.add(editSelectedButton);
 
         // Select/Deselect buttons (only visible in Performance Analysis mode)
         JPanel selectionButtonPanel = new JPanel(new GridLayout(1, 2, 5, 5));
@@ -338,6 +387,9 @@ public class ConfigurationPanel extends JPanel {
         configTiebreakerCombo.setSelectedIndex(0);
         configSightRadiusSpinner.setValue(1);
         updateButtonText();
+        
+        // Auto-save configurations
+        autoSaveConfigurations();
     }
 
     private void removeSelectedConfig() {
@@ -357,27 +409,19 @@ public class ConfigurationPanel extends JPanel {
                 configChangeCallback.run();
             }
         }
+        
+        // Auto-save configurations
+        autoSaveConfigurations();
     }
 
-    private void saveConfigurations() {
-        JFileChooser fileChooser = new JFileChooser(System.getProperty("user.dir"));
-        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Configuration files", "config"));
-
-        if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-            File file = fileChooser.getSelectedFile();
-            if (!file.getName().endsWith(".config")) {
-                file = new File(file.getAbsolutePath() + ".config");
-            }
-
-            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file))) {
-                oos.writeObject(algorithmConfigs);
-                JOptionPane.showMessageDialog(this, "Configurations saved successfully!", "Success",
-                        JOptionPane.INFORMATION_MESSAGE);
-            } catch (IOException ex) {
-                JOptionPane.showMessageDialog(this, "Error saving configurations: " + ex.getMessage(), "Error",
-                        JOptionPane.ERROR_MESSAGE);
-            }
+    private void editSelectedConfig() {
+        AlgorithmConfig selected = configList.getSelectedValue();
+        if (selected == null) {
+            JOptionPane.showMessageDialog(this, "Please select a configuration to edit.");
+            return;
         }
+        
+        loadConfigIntoEditor(selected);
     }
 
     // Adaptive renderer for showing checkboxes in performance analysis mode
