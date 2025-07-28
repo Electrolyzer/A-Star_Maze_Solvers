@@ -2,6 +2,8 @@
 package src;
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.*;
 import java.util.List;
 import javax.swing.*;
@@ -17,9 +19,13 @@ public class ResultViewer extends JPanel {
     private JSlider masterSlider;
     private JButton prevButton;
     private JButton nextButton;
+    private JButton autoplayButton;
+    private JComboBox<String> speedCombo;
     private JLabel stepLabel;
     private int currentStep = 0;
     private int maxSteps = 0;
+    private javax.swing.Timer autoplayTimer;
+    private boolean isAutoPlaying = false;
 
     public ResultViewer() {
         setLayout(new BorderLayout());
@@ -49,6 +55,15 @@ public class ResultViewer extends JPanel {
             }
         });
 
+        // Autoplay button
+        autoplayButton = new JButton("▶ Autoplay");
+        autoplayButton.addActionListener(e -> toggleAutoplay());
+
+        // Speed dropdown
+        speedCombo = new JComboBox<>(new String[]{"Fast", "Normal", "Slow"});
+        speedCombo.setSelectedItem("Normal");
+        speedCombo.setPreferredSize(new Dimension(80, 25));
+
         masterSlider = new JSlider(0, 0, 0);
         masterSlider.addChangeListener(e -> {
             currentStep = masterSlider.getValue();
@@ -58,6 +73,8 @@ public class ResultViewer extends JPanel {
         buttonPanel.add(prevButton);
         buttonPanel.add(stepLabel);
         buttonPanel.add(nextButton);
+        buttonPanel.add(autoplayButton);
+        buttonPanel.add(speedCombo);
 
         controlPanel.add(buttonPanel, BorderLayout.NORTH);
         controlPanel.add(masterSlider, BorderLayout.CENTER);
@@ -109,8 +126,20 @@ public class ResultViewer extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
 
         currentStep = maxSteps - 1; // Start at the end
+        
+        // Temporarily disable slider listener to prevent interference
+        var listeners = masterSlider.getChangeListeners();
+        for (var listener : listeners) {
+            masterSlider.removeChangeListener(listener);
+        }
+        
         updateControls();
         updateAllViews();
+        
+        // Re-enable slider listeners
+        for (var listener : listeners) {
+            masterSlider.addChangeListener(listener);
+        }
 
         revalidate();
         repaint();
@@ -132,13 +161,106 @@ public class ResultViewer extends JPanel {
         masterSlider.setValue(currentStep);
 
         if (maxSteps > 1) {
-            int minorTickSpacing = Math.max(1, maxSteps / 40);
-            int majorTickSpacing = Math.max(2, maxSteps / 20);
+            // Calculate better tick spacing to avoid overcrowding
+            int minorTickSpacing = Math.max(1, maxSteps / 20); // Fewer minor ticks
+            int majorTickSpacing = Math.max(5, maxSteps / 10); // Fewer major ticks
+            
+            // For very large step counts, increase spacing even more
+            if (maxSteps > 100) {
+                minorTickSpacing = Math.max(10, maxSteps / 10);
+                majorTickSpacing = Math.max(20, maxSteps / 5);
+            }
+            
             masterSlider.setMajorTickSpacing(majorTickSpacing);
             masterSlider.setMinorTickSpacing(minorTickSpacing);
             masterSlider.setPaintTicks(true);
             masterSlider.setPaintLabels(true);
+        } else {
+            // For single step or no steps, don't show ticks
+            masterSlider.setPaintTicks(false);
+            masterSlider.setPaintLabels(false);
         }
+    }
+
+    private void toggleAutoplay() {
+        if (isAutoPlaying) {
+            stopAutoplay();
+        } else {
+            startAutoplay();
+        }
+    }
+
+    private void startAutoplay() {
+        if (maxSteps <= 1) return;
+
+        isAutoPlaying = true;
+        autoplayButton.setText("⏸ Stop");
+        
+        // Disable manual controls during autoplay
+        prevButton.setEnabled(false);
+        nextButton.setEnabled(false);
+        masterSlider.setEnabled(false);
+
+        // Get delay based on speed selection
+        int delay = getAutoplayDelay();
+        
+        // Start from beginning if we're at the end
+        if (currentStep >= maxSteps - 1) {
+            currentStep = 0;
+            updateAllViews();
+        }
+
+        // Use more precise timing with compensation
+        autoplayTimer = new javax.swing.Timer(delay, new ActionListener() {
+            private long lastStepTime = System.nanoTime();
+            private final long targetInterval = delay * 1_000_000L; // Convert to nanoseconds
+            
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                long currentTime = System.nanoTime();
+                long actualInterval = currentTime - lastStepTime;
+                
+                // Calculate timing compensation for next step
+                long error = actualInterval - targetInterval;
+                int nextDelay = (int) Math.max(10, delay - (error / 1_000_000L));
+                
+                if (currentStep < maxSteps - 1) {
+                    currentStep++;
+                    updateAllViews();
+                    lastStepTime = currentTime;
+                    
+                    // Adjust timer for next iteration to compensate for timing drift
+                    autoplayTimer.setDelay(nextDelay);
+                } else {
+                    // Reached the end, stop autoplay
+                    stopAutoplay();
+                }
+            }
+        });
+        autoplayTimer.start();
+    }
+
+    private void stopAutoplay() {
+        isAutoPlaying = false;
+        autoplayButton.setText("▶ Autoplay");
+        
+        if (autoplayTimer != null) {
+            autoplayTimer.stop();
+            autoplayTimer = null;
+        }
+
+        // Re-enable manual controls
+        updateControls(); // This will properly set button states
+        masterSlider.setEnabled(true);
+    }
+
+    private int getAutoplayDelay() {
+        String speed = (String) speedCombo.getSelectedItem();
+        return switch (speed) {
+            case "Fast" -> 200;   // 200ms between steps
+            case "Slow" -> 1000;  // 1 second between steps
+            default -> 500;       // Normal: 500ms between steps
+        };
     }
 
     private class ResultPanel extends JPanel {

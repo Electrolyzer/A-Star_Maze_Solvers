@@ -164,14 +164,6 @@ public class InteractiveMazePanel extends JPanel {
                 buttonUpdateCallback.run();
             }
         }
-
-        String message = result.solved()
-                ? String.format("Maze solved! Expanded cells: %d (Sight radius: %d)", 
-                        result.expandedCells(), currentSolverConfig.getSightRadius())
-                : "No path found to target.";
-
-        JOptionPane.showMessageDialog(this, message,
-                "Solve Result", JOptionPane.INFORMATION_MESSAGE);
     }
 
     public void returnToEditMode() {
