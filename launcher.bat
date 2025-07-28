@@ -9,9 +9,8 @@ exit
 REM Change to the directory containing this script
 cd /d "%~dp0"
 
-REM Clean, build, and run silently
-call scripts\clean.bat
-call scripts\build.bat
+REM Smart build - only build if needed
+call scripts\smart-build.bat
 if %ERRORLEVEL% neq 0 exit /b 1
 
 REM Launch the application and exit

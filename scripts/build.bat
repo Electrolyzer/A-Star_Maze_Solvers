@@ -12,9 +12,3 @@ javac -cp "lib/*;src" -d build src/*.java >nul 2>&1
 if %ERRORLEVEL% neq 0 (
     exit /b 1
 )
-
-REM Compile main classes to build directory
-javac -cp "lib/*;build" -d build *.java >nul 2>&1
-if %ERRORLEVEL% neq 0 (
-    exit /b 1
-)
