@@ -11,7 +11,7 @@ import javax.swing.*;
  * with shared configuration management. Refactored into smaller, maintainable
  * components.
  */
-public class UnifiedMazeSolverUI extends JFrame {
+public class MazeSolverUI extends JFrame {
     // Main components
     private JTabbedPane mainTabbedPane;
     private ConfigurationPanel configPanel;
@@ -20,10 +20,18 @@ public class UnifiedMazeSolverUI extends JFrame {
     private SavedResultsPanel savedResultsPanel;
     private JPanel solverControlPanel;
 
-    public UnifiedMazeSolverUI() {
+    public MazeSolverUI() {
         setTitle("A* Maze Solver - Unified Interface");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
+
+        // Set application icon
+        try {
+            ImageIcon icon = new ImageIcon("resources/icon.png");
+            setIconImage(icon.getImage());
+        } catch (Exception e) {
+            // If icon loading fails, continue without icon
+        }
 
         // Create the main interface
         createMainInterface();
@@ -265,7 +273,7 @@ public class UnifiedMazeSolverUI extends JFrame {
             return;
         }
 
-        String currentDir = System.getProperty("user.dir") + "/Results";
+        String currentDir = System.getProperty("user.dir") + "/results";
         File resultsDir = new File(currentDir);
         if (!resultsDir.exists()) {
             resultsDir.mkdirs();

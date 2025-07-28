@@ -55,7 +55,7 @@ public class ConfigurationPanel extends JPanel {
     }
 
     private void loadConfigurations() {
-        File configFile = new File("configs.dat");
+        File configFile = new File("config/configs.dat");
         if (configFile.exists()) {
             try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(configFile))) {
                 @SuppressWarnings("unchecked")
@@ -96,7 +96,13 @@ public class ConfigurationPanel extends JPanel {
     }
 
     private void autoSaveConfigurations() {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("configs.dat"))) {
+        // Ensure config directory exists
+        File configDir = new File("config");
+        if (!configDir.exists()) {
+            configDir.mkdirs();
+        }
+        
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("config/configs.dat"))) {
             oos.writeObject(algorithmConfigs);
         } catch (IOException e) {
             // Silent failure for auto-save
