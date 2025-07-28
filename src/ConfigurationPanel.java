@@ -387,11 +387,6 @@ public class ConfigurationPanel extends JPanel {
             configListModel.addElement(newConfig);
         }
 
-        // Clear the editor fields
-        configNameField.setText("");
-        configAlgorithmCombo.setSelectedIndex(0);
-        configTiebreakerCombo.setSelectedIndex(0);
-        configSightRadiusSpinner.setValue(1);
         updateButtonText();
         
         // Auto-save configurations
